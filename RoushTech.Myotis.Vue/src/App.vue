@@ -62,6 +62,12 @@
                             :to="{ name: 'AdminLimits' }"
                             color="primary"
                         />
+                        <v-list-item
+                            prepend-icon="mdi-database-outline"
+                            title="Database health"
+                            :to="{ name: 'AdminDatabase' }"
+                            color="primary"
+                        />
                     </template>
                 </v-list>
                 <template #append>

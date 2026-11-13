@@ -12,6 +12,7 @@ using RoushTech.Myotis.Auth;
 using RoushTech.Myotis.Configuration;
 using RoushTech.Myotis.Data;
 using RoushTech.Myotis.Data.Models;
+using RoushTech.Myotis.Health;
 using RoushTech.Myotis.Mailboxes;
 using RoushTech.Myotis.Settings;
 using RoushTech.Myotis.Messages;
@@ -85,6 +86,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<RetentionService>();
         services.TryAddSingleton<IMailNotifier, NoMailNotifier>();
         services.AddScoped<SettingsService>();
+        services.AddScoped<DatabaseHealthService>();
         services.AddSingleton<CredentialAuthenticator>();
         services.AddSingleton<MailboxMessageStore>();
         services.AddSingleton<PemCertificateFactory>();
