@@ -4,9 +4,6 @@ public class SmtpOptions
 {
     public const string Section = "Myotis:Smtp";
 
-    // Until limits move to the admin settings, the 25 MB default from the brief is fixed.
-    public const int MaxMessageBytes = 25 * 1024 * 1024;
-
     public string ServerName { get; set; } = "myotis";
 
     // The host apps connect to, shown with a new credential. The web address's host when empty.

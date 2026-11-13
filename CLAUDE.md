@@ -87,7 +87,7 @@ dotnet ef migrations add <Name> --project RoushTech.Myotis -o Migrations
 - `appsettings.local.json`: local dev settings, never commit it
 - `appsettings.example.json`: example values to copy
 
-Any new setting goes in all three.
+Any new setting goes in all three. The exception is a setting administrators change at runtime (the Limits page): it lives in `Settings/SettingsRegistry.cs` with its default in code, is stored in the `InstanceSettings` table and layered over configuration, so it never goes in appsettings.
 
 ### Writing
 - No em dashes or en dashes anywhere: code, comments, UI copy, docs, commit messages. Use a comma, a colon, a full stop, or parentheses, or split the sentence.

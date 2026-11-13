@@ -4,11 +4,13 @@ using System.Security.Authentication;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using RoushTech.Myotis.Settings;
 using SmtpServer;
 using SmtpServer.ComponentModel;
 
 public class SmtpListener(
     IOptions<SmtpOptions> options,
+    IOptionsMonitor<LimitsOptions> limits,
     IHostEnvironment environment,
     CredentialAuthenticator authenticator,
     MailboxMessageStore store,
@@ -32,7 +34,7 @@ public class SmtpListener(
 
         var builder = new SmtpServerOptionsBuilder()
             .ServerName(options.Value.ServerName)
-            .MaxMessageSize(SmtpOptions.MaxMessageBytes, MaxMessageSizeHandling.Strict);
+            .MaxMessageSize(limits.CurrentValue.MaxMessageBytes, MaxMessageSizeHandling.Strict);
         foreach (var listener in listeners)
         {
             builder.Endpoint(endpoint =>
@@ -53,7 +55,12 @@ public class SmtpListener(
         services.Add(authenticator);
         services.Add(store);
 
-        var server = new SmtpServer(builder.Build(), services);
+        var serverOptions = builder.Build();
+        // The library reads this object on every EHLO, MAIL and DATA, so changing it applies a new cap to the next message.
+        var sizeCap = (MaxMessageSizeOptions)serverOptions.MaxMessageSizeOptions;
+        using var _ = limits.OnChange(l => sizeCap.Length = l.MaxMessageBytes);
+
+        var server = new SmtpServer(serverOptions, services);
         server.SessionFaulted += (_, e) => logger.LogWarning(e.Exception, "SMTP session faulted");
         logger.LogInformation("Listening for SMTP on {Listeners}", string.Join(", ", listeners.Select(l => $"{l.Port} ({l.Tls})")));
         try

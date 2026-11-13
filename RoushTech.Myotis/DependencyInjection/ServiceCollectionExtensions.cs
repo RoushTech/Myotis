@@ -12,6 +12,7 @@ using RoushTech.Myotis.Configuration;
 using RoushTech.Myotis.Data;
 using RoushTech.Myotis.Data.Models;
 using RoushTech.Myotis.Mailboxes;
+using RoushTech.Myotis.Settings;
 using RoushTech.Myotis.Messages;
 using RoushTech.Myotis.Smtp;
 using RoushTech.Myotis.Users;
@@ -25,12 +26,18 @@ public static class ServiceCollectionExtensions
             .Bind(configuration.GetSection(SmtpOptions.Section))
             .Validate(o => o.Certificate.IsConfigured || !o.Listeners.Any(l => l.NeedsCertificate),
                 "Myotis:Smtp:Certificate needs CertificatePath and KeyPath for Implicit and StartTls listeners")
+            // The binder silently drops a listener with a value it can't convert, which would quietly turn SMTP off.
+            .Validate(o => o.Listeners.Count == configuration.GetSection($"{SmtpOptions.Section}:Listeners").GetChildren().Count(),
+                "A listener in Myotis:Smtp:Listeners has a value that isn't valid, such as a port that isn't a number")
             .ValidateOnStart();
+        services.Configure<LimitsOptions>(configuration.GetSection(LimitsOptions.Section));
         services.TryAddSingleton(TimeProvider.System);
+        services.TryAddSingleton<InstanceSettingsConfigurationSource>();
         services.AddDbContext<MyotisDbContext>(o => o.UseSqlite(configuration.GetConnectionString("Default")));
 
         // Hosted services start in order, and data protection reads its keys from the database on start.
         services.AddHostedService<DatabaseMigrator>();
+        services.AddHostedService<InstanceSettingsLoader>();
 
         services
             .AddIdentity<User, Role>(options =>
@@ -69,6 +76,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<MailboxService>();
         services.AddScoped<SmtpCredentialService>();
         services.AddScoped<MessageIntake>();
+        services.AddScoped<SettingsService>();
         services.AddSingleton<CredentialAuthenticator>();
         services.AddSingleton<MailboxMessageStore>();
         services.AddSingleton<PemCertificateFactory>();

@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using RoushTech.Myotis.DependencyInjection;
+using RoushTech.Myotis.Settings;
 using RoushTech.Myotis.Website.Binders;
 using RoushTech.Myotis.Website.Filters;
 
@@ -10,9 +11,12 @@ builder.Configuration
     .AddJsonFile("appsettings.local.json", true)
     .AddEnvironmentVariables()
     .AddCommandLine(args);
+var instanceSettings = new InstanceSettingsConfigurationSource();
+((IConfigurationBuilder)builder.Configuration).Add(instanceSettings);
 
 builder.Services
     .AddLogging(opt => { opt.AddSimpleConsole(o => { o.TimestampFormat = "[HH:mm:ss] "; }); })
+    .AddSingleton(instanceSettings)
     .AddMyotis(builder.Configuration)
     .AddAuthorization()
     .AddHealthChecks()

@@ -20,6 +20,8 @@ public class MyotisDbContext(DbContextOptions<MyotisDbContext> options)
 
     public DbSet<MessageContent> MessageContents => Set<MessageContent>();
 
+    public DbSet<InstanceSetting> InstanceSettings => Set<InstanceSetting>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

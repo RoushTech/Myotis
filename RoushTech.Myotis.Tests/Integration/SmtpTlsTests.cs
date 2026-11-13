@@ -70,6 +70,19 @@ public class SmtpTlsTests
     }
 
     [Test]
+    public void AListenerWithAValueThatWontBindStopsStartup()
+    {
+        using var app = new MyotisApp(settings: new Dictionary<string, string>
+        {
+            ["Myotis:Smtp:Listeners:0:Port"] = "#{myotis.smtp.port}",
+        });
+
+        var failure = Assert.Catch(() => app.CreateClient());
+
+        Assert.That(failure?.ToString(), Does.Contain("has a value that isn't valid"));
+    }
+
+    [Test]
     public async Task ARenewedCertificateIsUsedWithoutARestart()
     {
         using var certificate = new TestCertificate();

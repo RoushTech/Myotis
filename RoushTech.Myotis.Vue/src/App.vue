@@ -38,6 +38,12 @@
                             :to="{ name: 'AdminUsers' }"
                             color="primary"
                         />
+                        <v-list-item
+                            prepend-icon="mdi-tune-variant"
+                            title="Limits"
+                            :to="{ name: 'AdminLimits' }"
+                            color="primary"
+                        />
                     </template>
                 </v-list>
                 <template #append>
