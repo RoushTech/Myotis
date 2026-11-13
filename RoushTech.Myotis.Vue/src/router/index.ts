@@ -7,6 +7,15 @@ const routes: RouteRecordRaw[] = [
         component: () => import("@v/MailboxesView.vue"),
     },
     {
+        path: "/mailboxes/:mailboxId/:messageId?",
+        name: "Inbox",
+        component: () => import("@v/InboxView.vue"),
+        props: (route) => ({
+            mailboxId: route.params["mailboxId"],
+            messageId: route.params["messageId"] || undefined,
+        }),
+    },
+    {
         path: "/admin/mailboxes",
         name: "AdminMailboxes",
         component: () => import("@v/admin/AdminMailboxesView.vue"),

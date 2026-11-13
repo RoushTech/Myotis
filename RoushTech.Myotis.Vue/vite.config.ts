@@ -21,6 +21,7 @@ export default defineConfig({
         proxy: {
             "/api": { target: "http://localhost:5400", secure: false },
             "/mcp": { target: "http://localhost:5400", secure: false },
+            "/hubs": { target: "http://localhost:5400", secure: false, ws: true },
         },
         port: 3004,
         strictPort: true,

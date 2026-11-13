@@ -1,8 +1,10 @@
 using System.Text.Json.Serialization;
 using RoushTech.Myotis.DependencyInjection;
+using RoushTech.Myotis.Messages;
 using RoushTech.Myotis.Settings;
 using RoushTech.Myotis.Website.Binders;
 using RoushTech.Myotis.Website.Filters;
+using RoushTech.Myotis.Website.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration
@@ -17,11 +19,14 @@ var instanceSettings = new InstanceSettingsConfigurationSource();
 builder.Services
     .AddLogging(opt => { opt.AddSimpleConsole(o => { o.TimestampFormat = "[HH:mm:ss] "; }); })
     .AddSingleton(instanceSettings)
+    .AddSingleton<IMailNotifier, SignalRMailNotifier>()
     .AddMyotis(builder.Configuration)
     .AddAuthorization()
     .AddHealthChecks()
     .Services
     .AddScoped<MailboxAccessFilter>()
+    .AddSignalR()
+    .Services
     .AddControllers(o =>
     {
         o.ModelBinderProviders.Insert(0, new EntityBinderProvider());
@@ -43,6 +48,7 @@ app
     {
         endpoints.MapControllers();
         endpoints.MapHealthChecks("/health");
+        endpoints.MapHub<MailHub>("/hubs/mail");
         // An unmatched API route is a 404, never the SPA shell.
         endpoints.MapFallback("/api/{**rest}", (HttpContext context) =>
         {

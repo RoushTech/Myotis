@@ -52,7 +52,7 @@ dotnet ef migrations add <Name> --project RoushTech.Myotis -o Migrations
 - Every action touching a mailbox or message checks the caller holds a grant for that mailbox, or is an administrator. Answer 404, never 403, so mailbox names and IDs don't leak.
 - Bind entities from the route and check access in one global filter, as Tamias does with `CustomerAccessFilter`, rather than in each action.
 - `/mcp` skips MVC, so filters and role attributes don't apply there: every tool checks access itself through the same service the controllers use.
-- The SignalR hub skips MVC filters too: joining a mailbox's live feed checks access through that same service, and a client only ever receives events for mailboxes it may read.
+- The SignalR hub skips MVC filters too, so clients never join mailbox groups: the server works out who may read the mailbox (administrators plus grant holders, through `MailboxService`) each time it sends, and sends only to those users. A revoked grant stops events at once.
 - Never return a credential, password hash or token after the response that created it. No endpoint returns another user's data.
 
 ### Mail handling

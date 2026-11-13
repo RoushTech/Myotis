@@ -9,6 +9,9 @@ export type Mailbox = {
     createdAt: string;
     credentialCount: number;
     peopleCount: number;
+    messageCount: number;
+    unreadCount: number;
+    lastReceivedAt: string | null;
 };
 
 export type Credential = {

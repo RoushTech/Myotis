@@ -4,7 +4,7 @@ using MimeKit;
 using RoushTech.Myotis.Data;
 using RoushTech.Myotis.Data.Models;
 
-public class MessageIntake(MyotisDbContext db, TimeProvider time)
+public class MessageIntake(MyotisDbContext db, TimeProvider time, IMailNotifier notifier)
 {
     public async Task<Message> SaveAsync(Guid mailboxId, string envelopeFrom, IReadOnlyList<string> envelopeTo, byte[] raw, CancellationToken cancellationToken)
     {
@@ -29,6 +29,7 @@ public class MessageIntake(MyotisDbContext db, TimeProvider time)
         };
         db.Messages.Add(message);
         await db.SaveChangesAsync(cancellationToken);
+        await notifier.MessageReceivedAsync(message, cancellationToken);
         return message;
     }
 }

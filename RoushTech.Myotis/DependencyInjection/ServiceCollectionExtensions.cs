@@ -76,6 +76,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<MailboxService>();
         services.AddScoped<SmtpCredentialService>();
         services.AddScoped<MessageIntake>();
+        services.AddScoped<MessageReader>();
+        services.TryAddSingleton<IMailNotifier, NoMailNotifier>();
         services.AddScoped<SettingsService>();
         services.AddSingleton<CredentialAuthenticator>();
         services.AddSingleton<MailboxMessageStore>();

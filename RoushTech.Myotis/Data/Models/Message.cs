@@ -33,6 +33,9 @@ public class Message : IMailboxScoped, IEntityTypeConfiguration<Message>
 
     public int AttachmentCount { get; set; }
 
+    // Shared by everyone who reads the mailbox, like a team inbox.
+    public bool IsRead { get; set; }
+
     public MessageContent Content { get; set; } = null!;
 
     public void Configure(EntityTypeBuilder<Message> builder)
@@ -40,6 +43,9 @@ public class Message : IMailboxScoped, IEntityTypeConfiguration<Message>
         builder.HasOne(m => m.Mailbox).WithMany().OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(m => m.Content).WithOne().HasForeignKey<MessageContent>(c => c.MessageId).OnDelete(DeleteBehavior.Cascade);
         builder.HasIndex(m => new { m.MailboxId, m.ReceivedAt });
+        builder.Property(m => m.Subject).UseCollation("NOCASE");
+        builder.Property(m => m.From).UseCollation("NOCASE");
+        builder.Property(m => m.To).UseCollation("NOCASE");
     }
 }
 

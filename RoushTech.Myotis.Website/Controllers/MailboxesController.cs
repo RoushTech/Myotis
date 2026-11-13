@@ -21,7 +21,7 @@ public class MailboxesController(MailboxService mailboxes) : ControllerBase
     public async Task<MailboxResponse> Create(MailboxRequest request, CancellationToken cancellationToken)
     {
         var mailbox = await mailboxes.CreateAsync(request.Name, cancellationToken);
-        return new MailboxResponse(mailbox.Id, mailbox.Name, mailbox.CreatedAt, 0, 0);
+        return new MailboxResponse(mailbox.Id, mailbox.Name, mailbox.CreatedAt, 0, 0, 0, 0, null);
     }
 
     [HttpGet("api/v0/mailboxes/{mailbox}")]

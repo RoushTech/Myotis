@@ -3,9 +3,10 @@ namespace RoushTech.Myotis.Website.Models;
 using RoushTech.Myotis.Data.Models;
 using RoushTech.Myotis.Mailboxes;
 
-public record MailboxResponse(Guid Id, string Name, DateTime CreatedAt, int CredentialCount, int PeopleCount)
+public record MailboxResponse(Guid Id, string Name, DateTime CreatedAt, int CredentialCount, int PeopleCount, int MessageCount, int UnreadCount, DateTime? LastReceivedAt)
 {
-    public static MailboxResponse From(MailboxSummary m) => new(m.Id, m.Name, m.CreatedAt, m.CredentialCount, m.PeopleCount);
+    public static MailboxResponse From(MailboxSummary m) =>
+        new(m.Id, m.Name, m.CreatedAt, m.CredentialCount, m.PeopleCount, m.MessageCount, m.UnreadCount, m.LastReceivedAt);
 }
 
 public class MailboxRequest
@@ -28,3 +29,8 @@ public class CredentialRequest
 public record SmtpPortResponse(int Port, string Security);
 
 public record SmtpConnectionResponse(string Host, List<SmtpPortResponse> Ports);
+
+public class MessageUpdateRequest
+{
+    public bool? IsRead { get; init; }
+}

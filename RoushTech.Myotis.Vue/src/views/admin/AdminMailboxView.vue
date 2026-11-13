@@ -20,8 +20,18 @@
             <div class="page-head">
                 <div>
                     <h1 class="page-title">{{ mailbox.name }}</h1>
-                    <p class="page-subtitle">Created {{ shortDate(mailbox.createdAt) }}</p>
+                    <p class="page-subtitle">
+                        {{ mailbox.messageCount }} messages · created
+                        {{ shortDate(mailbox.createdAt) }}
+                    </p>
                 </div>
+                <v-btn
+                    variant="outlined"
+                    prepend-icon="mdi-inbox-outline"
+                    :to="{ name: 'Inbox', params: { mailboxId: mailbox.id } }"
+                >
+                    Open mailbox
+                </v-btn>
             </div>
             <div class="stack">
                 <CredentialsCard :mailbox="mailbox" />

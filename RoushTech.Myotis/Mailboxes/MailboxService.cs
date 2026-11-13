@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using RoushTech.Myotis.Data;
 using RoushTech.Myotis.Data.Models;
 
-public record MailboxSummary(Guid Id, string Name, DateTime CreatedAt, int CredentialCount, int PeopleCount);
+public record MailboxSummary(Guid Id, string Name, DateTime CreatedAt, int CredentialCount, int PeopleCount, int MessageCount, int UnreadCount, DateTime? LastReceivedAt);
 
 public class MailboxService(MyotisDbContext db, TimeProvider time)
 {
@@ -45,6 +45,18 @@ public class MailboxService(MyotisDbContext db, TimeProvider time)
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    private static IQueryable<MailboxSummary> Summaries(IQueryable<Mailbox> mailboxes) =>
-        mailboxes.Select(m => new MailboxSummary(m.Id, m.Name, m.CreatedAt, m.Credentials.Count, m.Grants.Count));
+    // Administrators and grant holders, read fresh each time so a removed grant stops live events straight away.
+    public async Task<List<Guid>> ReaderIdsAsync(Guid mailboxId, IReadOnlyCollection<Guid> administratorIds, CancellationToken cancellationToken) =>
+        [.. administratorIds.Union(await db.MailboxGrants.Where(g => g.MailboxId == mailboxId).Select(g => g.UserId).ToListAsync(cancellationToken))];
+
+    private IQueryable<MailboxSummary> Summaries(IQueryable<Mailbox> mailboxes) =>
+        mailboxes.Select(m => new MailboxSummary(
+            m.Id,
+            m.Name,
+            m.CreatedAt,
+            m.Credentials.Count,
+            m.Grants.Count,
+            db.Messages.Count(x => x.MailboxId == m.Id),
+            db.Messages.Count(x => x.MailboxId == m.Id && !x.IsRead),
+            db.Messages.Where(x => x.MailboxId == m.Id).Max(x => (DateTime?)x.ReceivedAt)));
 }
