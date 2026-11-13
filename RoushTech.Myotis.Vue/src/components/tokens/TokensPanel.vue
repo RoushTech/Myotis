@@ -103,13 +103,7 @@ claude mcp add --transport http myotis {{ origin }}/mcp \
                 </v-alert>
                 <v-text-field :model-value="created" readonly hide-details class="mono-input">
                     <template #append-inner>
-                        <v-btn
-                            :icon="copied ? 'mdi-check' : 'mdi-content-copy'"
-                            variant="text"
-                            size="small"
-                            aria-label="Copy token"
-                            @click="copy(created)"
-                        />
+                        <CopyButton :text="created" label="token" />
                     </template>
                 </v-text-field>
             </v-card-text>
@@ -138,6 +132,7 @@ import { errorMessage } from "@/api/errors";
 import { lastUsed, shortDate } from "@/lib/dates";
 import { tokensQuery, useInvalidateTokens } from "@/queries/tokens";
 import ConfirmDialog from "@c/ConfirmDialog.vue";
+import CopyButton from "@c/CopyButton.vue";
 import ErrorAlert from "@c/ErrorAlert.vue";
 
 const invalidate = useInvalidateTokens();
@@ -147,7 +142,6 @@ const creating = ref(false);
 const name = ref("");
 const created = ref<string | null>(null);
 const createError = ref<string | null>(null);
-const copied = ref(false);
 const busy = ref(false);
 const revoking = ref<Token | null>(null);
 
@@ -155,7 +149,6 @@ function startCreate() {
     name.value = "";
     created.value = null;
     createError.value = null;
-    copied.value = false;
     creating.value = true;
 }
 
@@ -170,11 +163,6 @@ async function create() {
     } finally {
         busy.value = false;
     }
-}
-
-async function copy(text: string) {
-    await navigator.clipboard.writeText(text);
-    copied.value = true;
 }
 
 async function revoke() {

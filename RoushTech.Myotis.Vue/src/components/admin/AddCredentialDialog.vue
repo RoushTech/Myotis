@@ -41,23 +41,33 @@
                     <strong>Copy the password now.</strong> You won't be able to see it again. If
                     it's lost, revoke this credential and add another.
                 </v-alert>
-                <dl class="key-values">
+                <dl class="key-values key-values--copyable">
                     <template v-if="connection">
                         <dt>Host</dt>
-                        <dd class="text-mono">{{ connection.host }}</dd>
-                        <dt>Port</dt>
                         <dd>
-                            <span v-if="!connection.ports.length" class="text-medium-emphasis">
-                                No SMTP listener is set up yet
+                            <span class="text-mono">{{ connection.host }}</span>
+                            <CopyButton :text="connection.host" label="host" />
+                        </dd>
+                        <dt>Port</dt>
+                        <dd v-if="!connection.ports.length" class="text-medium-emphasis">
+                            No SMTP listener is set up yet
+                        </dd>
+                        <dd v-else class="ports">
+                            <span v-for="port in connection.ports" :key="port.port">
+                                <span class="text-mono">{{ port.port }}</span>
+                                <span class="text-medium-emphasis"> ({{ port.security }})</span>
+                                <CopyButton
+                                    :text="String(port.port)"
+                                    :label="`port ${port.port}`"
+                                />
                             </span>
-                            <template v-for="(port, index) in connection.ports" :key="port.port">
-                                <span v-if="index > 0"> or </span>
-                                <span class="text-mono">{{ port.port }}</span> ({{ port.security }})
-                            </template>
                         </dd>
                     </template>
                     <dt>Username</dt>
-                    <dd class="text-mono">{{ created.credential.username }}</dd>
+                    <dd>
+                        <span class="text-mono">{{ created.credential.username }}</span>
+                        <CopyButton :text="created.credential.username" label="username" />
+                    </dd>
                     <dt>Sign-in</dt>
                     <dd>PLAIN or LOGIN</dd>
                 </dl>
@@ -69,17 +79,12 @@
                     hide-details
                 >
                     <template #append-inner>
-                        <v-btn
-                            :icon="copied ? 'mdi-check' : 'mdi-content-copy'"
-                            variant="text"
-                            size="small"
-                            aria-label="Copy password"
-                            @click="copy(created.password)"
-                        />
+                        <CopyButton :text="created.password" label="password" />
                     </template>
                 </v-text-field>
             </v-card-text>
             <v-card-actions>
+                <CopyButton :text="allSettings" label="all settings" caption="Copy all" />
                 <v-spacer />
                 <v-btn color="primary" variant="flat" @click="open = false">Done</v-btn>
             </v-card-actions>
@@ -88,12 +93,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useQuery } from "@pinia/colada";
 import { mailboxApi, type CreatedCredential, type Mailbox } from "@/api/mailboxes";
 import { errorMessage } from "@/api/errors";
 import { useInvalidateMailboxes } from "@/queries/mailboxes";
 import { smtpConnectionQuery } from "@/queries/smtp";
+import CopyButton from "@c/CopyButton.vue";
 
 const props = defineProps<{ mailbox: Mailbox }>();
 const invalidate = useInvalidateMailboxes();
@@ -103,14 +109,28 @@ const username = ref("");
 const busy = ref(false);
 const error = ref<string | null>(null);
 const created = ref<CreatedCredential | null>(null);
-const copied = ref(false);
+
+const allSettings = computed(() => {
+    if (!created.value) {
+        return "";
+    }
+    const lines = [];
+    if (connection.value) {
+        lines.push(`Host: ${connection.value.host}`);
+        for (const port of connection.value.ports) {
+            lines.push(`Port: ${port.port} (${port.security})`);
+        }
+    }
+    lines.push(`Username: ${created.value.credential.username}`);
+    lines.push(`Password: ${created.value.password}`);
+    return lines.join("\n");
+});
 
 watch(open, (isOpen) => {
     if (isOpen) {
         username.value = props.mailbox.name.toLowerCase().trim().replace(/\s+/g, "-");
         error.value = null;
         created.value = null;
-        copied.value = false;
     }
 });
 
@@ -125,10 +145,5 @@ async function create() {
     } finally {
         busy.value = false;
     }
-}
-
-async function copy(text: string) {
-    await navigator.clipboard.writeText(text);
-    copied.value = true;
 }
 </script>

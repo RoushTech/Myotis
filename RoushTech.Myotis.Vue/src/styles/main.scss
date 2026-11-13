@@ -133,6 +133,21 @@ html {
     }
 }
 
+.key-values--copyable {
+    align-items: center;
+
+    dd {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 2px 4px;
+    }
+
+    .ports {
+        column-gap: 16px;
+    }
+}
+
 .chips {
     display: flex;
     flex-wrap: wrap;
