@@ -523,6 +523,11 @@ html {
     flex-direction: column;
     gap: 12px;
     padding: 16px 24px 24px;
+
+    // Vuetify's v-alert grows by default, which would split the height with the message frame.
+    > .v-alert {
+        flex: none;
+    }
 }
 
 // Message HTML is a document of its own, white in either theme as a mail client shows it.
