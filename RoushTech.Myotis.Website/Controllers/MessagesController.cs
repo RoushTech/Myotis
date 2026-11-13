@@ -9,7 +9,7 @@ using RoushTech.Myotis.Website.Models;
 
 [ApiController]
 [Authorize]
-public class MessagesController(MessageReader messages) : ControllerBase
+public class MessagesController(MessageReader messages, RetentionService retention) : ControllerBase
 {
     [HttpGet("api/v0/mailboxes/{mailbox}/messages")]
     public Task<List<MessageSummary>> List([FromRoute] Mailbox mailbox, [FromQuery] string? search, CancellationToken cancellationToken) =>
@@ -28,6 +28,20 @@ public class MessagesController(MessageReader messages) : ControllerBase
         }
 
         return MessageReader.ToSummary(message);
+    }
+
+    [HttpDelete("api/v0/mailboxes/{mailbox}/messages/{message}")]
+    public async Task<IActionResult> Delete([FromRoute] Mailbox mailbox, [FromRoute] Message message, CancellationToken cancellationToken)
+    {
+        await retention.DeleteAsync(message, cancellationToken);
+        return NoContent();
+    }
+
+    [HttpDelete("api/v0/mailboxes/{mailbox}/messages")]
+    public async Task<IActionResult> DeleteAll([FromRoute] Mailbox mailbox, CancellationToken cancellationToken)
+    {
+        await retention.EmptyAsync(mailbox, cancellationToken);
+        return NoContent();
     }
 
     // Message HTML is untrusted: it is only ever served here, under a CSP that blocks scripts, forms and, unless asked, remote images.

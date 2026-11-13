@@ -30,7 +30,15 @@
                             aria-label="Download .eml"
                             :href="messageApi.emlUrl(mailboxId, messageId)"
                         />
-                        <slot name="actions" />
+                        <v-btn
+                            icon="mdi-delete-outline"
+                            variant="text"
+                            size="small"
+                            title="Delete message"
+                            aria-label="Delete message"
+                            :loading="deleting"
+                            @click="remove"
+                        />
                     </div>
                 </div>
                 <dl class="key-values viewer__addresses">
@@ -169,6 +177,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import { useRouter } from "vue-router";
 import { useQuery } from "@pinia/colada";
 import type { MailboxId } from "@/api/mailboxes";
 import { messageApi, type MessageId } from "@/api/messages";
@@ -186,7 +195,9 @@ const {
     error,
     refetch,
 } = useQuery(() => messageQuery(props.mailboxId, props.messageId));
+const router = useRouter();
 const tab = ref("html");
+const deleting = ref(false);
 const remoteImages = ref(false);
 
 const htmlUrl = computed(() =>
@@ -216,6 +227,18 @@ watch(
     },
     { immediate: true }
 );
+
+async function remove() {
+    deleting.value = true;
+    try {
+        await messageApi.remove(props.mailboxId, props.messageId);
+        // Leave first: refreshing while this message is open would refetch it and fail.
+        await router.push({ name: "Inbox", params: { mailboxId: props.mailboxId } });
+        await invalidate(props.mailboxId);
+    } finally {
+        deleting.value = false;
+    }
+}
 
 function headerAddresses(value: string): string[] {
     return value

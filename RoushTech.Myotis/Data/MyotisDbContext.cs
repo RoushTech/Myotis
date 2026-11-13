@@ -22,6 +22,8 @@ public class MyotisDbContext(DbContextOptions<MyotisDbContext> options)
 
     public DbSet<InstanceSetting> InstanceSettings => Set<InstanceSetting>();
 
+    public DbSet<RetentionRun> RetentionRuns => Set<RetentionRun>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

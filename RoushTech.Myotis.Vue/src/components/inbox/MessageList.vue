@@ -18,7 +18,36 @@
                     {{ mailbox.messageCount }}
                     {{ mailbox.messageCount === 1 ? "message" : "messages" }}
                 </span>
-                <slot name="actions" />
+                <v-btn
+                    v-if="mailbox.messageCount && !error"
+                    variant="text"
+                    color="error"
+                    size="small"
+                    prepend-icon="mdi-delete-sweep-outline"
+                    @click="confirming = true"
+                >
+                    Empty mailbox
+                </v-btn>
+            </div>
+            <div v-if="confirming" class="confirm-bar">
+                <span>
+                    Delete all {{ mailbox.messageCount }} messages in {{ mailbox.name }}? This can't
+                    be undone.
+                </span>
+                <div>
+                    <v-btn variant="outlined" size="small" @click="confirming = false"
+                        >Cancel</v-btn
+                    >
+                    <v-btn
+                        color="error"
+                        variant="flat"
+                        size="small"
+                        :loading="emptying"
+                        @click="empty"
+                    >
+                        Empty mailbox
+                    </v-btn>
+                </div>
             </div>
         </div>
         <div class="inbox__messages">
@@ -69,12 +98,13 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { useRouter } from "vue-router";
 import { useQuery } from "@pinia/colada";
 import type { Mailbox } from "@/api/mailboxes";
-import type { MessageId } from "@/api/messages";
+import { messageApi, type MessageId } from "@/api/messages";
 import { errorMessage } from "@/api/errors";
 import { listTime } from "@/lib/dates";
-import { messagesQuery } from "@/queries/messages";
+import { messagesQuery, useInvalidateMessages } from "@/queries/messages";
 import ErrorAlert from "@c/ErrorAlert.vue";
 import MailboxSwitcher from "@c/inbox/MailboxSwitcher.vue";
 
@@ -83,6 +113,10 @@ const props = defineProps<{
     mailboxes: Mailbox[];
     currentId: MessageId | undefined;
 }>();
+const router = useRouter();
+const invalidate = useInvalidateMessages();
+const confirming = ref(false);
+const emptying = ref(false);
 const search = ref<string | null>("");
 const query = computed(() => (search.value ?? "").trim());
 const {
@@ -91,4 +125,16 @@ const {
     isLoading,
     refetch,
 } = useQuery(() => messagesQuery(props.mailbox.id, query.value));
+
+async function empty() {
+    emptying.value = true;
+    try {
+        await messageApi.empty(props.mailbox.id);
+        confirming.value = false;
+        await router.push({ name: "Inbox", params: { mailboxId: props.mailbox.id } });
+        await invalidate(props.mailbox.id);
+    } finally {
+        emptying.value = false;
+    }
+}
 </script>

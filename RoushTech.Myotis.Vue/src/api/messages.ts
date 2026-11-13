@@ -56,6 +56,14 @@ export const messageApi = {
             .data;
     },
 
+    async remove(mailboxId: MailboxId, id: MessageId): Promise<void> {
+        await axios.delete(base(mailboxId, id));
+    },
+
+    async empty(mailboxId: MailboxId): Promise<void> {
+        await axios.delete(`/api/v0/mailboxes/${mailboxId}/messages`);
+    },
+
     htmlUrl(mailboxId: MailboxId, id: MessageId, remoteImages: boolean): string {
         return `${base(mailboxId, id)}/html${remoteImages ? "?remoteImages=true" : ""}`;
     },

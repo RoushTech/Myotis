@@ -4,7 +4,7 @@ using MimeKit;
 using RoushTech.Myotis.Data;
 using RoushTech.Myotis.Data.Models;
 
-public class MessageIntake(MyotisDbContext db, TimeProvider time, IMailNotifier notifier)
+public class MessageIntake(MyotisDbContext db, TimeProvider time, IMailNotifier notifier, RetentionService retention)
 {
     public async Task<Message> SaveAsync(Guid mailboxId, string envelopeFrom, IReadOnlyList<string> envelopeTo, byte[] raw, CancellationToken cancellationToken)
     {
@@ -29,6 +29,8 @@ public class MessageIntake(MyotisDbContext db, TimeProvider time, IMailNotifier 
         };
         db.Messages.Add(message);
         await db.SaveChangesAsync(cancellationToken);
+        // Trimming here keeps a burst from overshooting the count until the hourly run.
+        await retention.TrimToCountAsync(mailboxId, cancellationToken);
         await notifier.MessageReceivedAsync(message, cancellationToken);
         return message;
     }

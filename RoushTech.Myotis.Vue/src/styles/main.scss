@@ -580,3 +580,21 @@ html {
         white-space: nowrap;
     }
 }
+
+.confirm-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border: 1px solid rgb(var(--v-theme-error));
+    border-radius: 8px;
+    background: rgba(var(--v-theme-error), 0.08);
+    font-size: 0.8125rem;
+
+    div {
+        display: flex;
+        gap: 6px;
+    }
+}

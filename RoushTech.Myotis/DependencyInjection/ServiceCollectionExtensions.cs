@@ -77,6 +77,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<SmtpCredentialService>();
         services.AddScoped<MessageIntake>();
         services.AddScoped<MessageReader>();
+        services.AddScoped<RetentionService>();
         services.TryAddSingleton<IMailNotifier, NoMailNotifier>();
         services.AddScoped<SettingsService>();
         services.AddSingleton<CredentialAuthenticator>();
@@ -86,6 +87,7 @@ public static class ServiceCollectionExtensions
         services.AddHostedService<RoleSeeder>();
         services.AddHostedService<UserSeeder>();
         services.AddHostedService<SmtpListener>();
+        services.AddHostedService<RetentionWorker>();
         return services;
     }
 }

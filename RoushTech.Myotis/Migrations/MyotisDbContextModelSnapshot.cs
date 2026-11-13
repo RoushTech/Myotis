@@ -290,6 +290,29 @@ namespace RoushTech.Myotis.Migrations
                     b.ToTable("MessageContents");
                 });
 
+            modelBuilder.Entity("RoushTech.Myotis.Data.Models.RetentionRun", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DeletedCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Error")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FinishedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RetentionRuns");
+                });
+
             modelBuilder.Entity("RoushTech.Myotis.Data.Models.Role", b =>
                 {
                     b.Property<Guid>("Id")
