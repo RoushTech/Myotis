@@ -6,7 +6,7 @@ The repo starts empty. Build it to the layout and rules below, which match Procy
 
 ## Stack
 
-- **Server:** ASP.NET Core (.NET 10), EF Core with SQLite, ASP.NET Identity, SignalR for live mail, Sentry
+- **Server:** ASP.NET Core (.NET 10), EF Core with SQLite, ASP.NET Identity, SignalR for live mail
 - **SMTP:** an in-process listener on `SmtpServer` (cosullivan), MimeKit for parsing. Set `MaxMessageSizeHandling.Strict` (the default only advertises `SIZE`), and trust its `PROXY` header only from a configured proxy address, since any client can send one.
 - **Frontend:** Vue 3 + TypeScript, Vite, Vuetify, Pinia, Pinia Colada
 - **Shared:** RoushTech.Meles once it is published; RoushTech.Asio for background task logs

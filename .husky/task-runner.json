@@ -1,0 +1,37 @@
+{
+    "tasks": [
+        {
+            "name": "Dotnet Format",
+            "group": "pre-commit",
+            "command": "dotnet",
+            "args": ["format", "--verify-no-changes", "--include", "${staged}"],
+            "include": ["**/*.cs"]
+        },
+        {
+            "name": "Prettier",
+            "group": "pre-commit",
+            "pathMode": "absolute",
+            "cwd": "RoushTech.Myotis.Vue/",
+            "command": "npx",
+            "args": ["prettier", "--check", "${staged}"],
+            "include": ["**/*.ts", "**/*.vue", "**/*.js", "**/*.mjs", "**/*.json", "**/*.scss"]
+        },
+        {
+            "name": "Type Check",
+            "group": "pre-commit",
+            "pathMode": "absolute",
+            "cwd": "RoushTech.Myotis.Vue/",
+            "command": "npx",
+            "args": ["vue-tsc", "--noEmit"]
+        },
+        {
+            "name": "Lint",
+            "group": "pre-commit",
+            "pathMode": "absolute",
+            "cwd": "RoushTech.Myotis.Vue/",
+            "command": "npx",
+            "args": ["eslint", "${staged}"],
+            "include": ["**/*.ts", "**/*.vue", "**/*.js", "**/*.mjs"]
+        }
+    ]
+}

@@ -1,0 +1,14 @@
+{
+    "$schema": "https://json.schemastore.org/launchsettings.json",
+    "profiles": {
+        "RoushTech.Myotis.Website": {
+            "commandName": "Project",
+            "launchBrowser": false,
+            "applicationUrl": "http://localhost:5400",
+            "environmentVariables": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.SpaProxy"
+            }
+        }
+    }
+}

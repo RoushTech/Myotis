@@ -1,0 +1,95 @@
+html {
+    // Vuetify forces a scrollbar on the right otherwise: https://github.com/vuetifyjs/vuetify/issues/16994
+    overflow-y: auto !important;
+}
+
+.app-nav__brand {
+    display: block;
+    padding: 18px 16px 12px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.app-nav__hint {
+    padding: 4px 16px 8px;
+    color: rgba(var(--v-theme-on-surface), 0.6);
+    font-size: 0.8125rem;
+}
+
+.app-nav__version {
+    padding: 4px 16px 12px;
+    color: rgba(var(--v-theme-on-surface), 0.6);
+    font-size: 0.75rem;
+}
+
+.app-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.125rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.app-brand__mark {
+    display: inline-grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: rgb(var(--v-theme-primary));
+    color: rgb(var(--v-theme-on-primary));
+}
+
+.auth-card__logo {
+    margin-bottom: 8px;
+}
+
+.auth-card__title {
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+.auth-card__subtitle {
+    white-space: normal;
+}
+
+.page.v-container {
+    max-width: 1120px;
+    margin: 0;
+    padding: 24px;
+}
+
+.page-title {
+    font-size: 1.375rem;
+    font-weight: 600;
+}
+
+.page-subtitle {
+    margin-top: 4px;
+    color: rgba(var(--v-theme-on-surface), 0.68);
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 48px 24px;
+    text-align: center;
+
+    .v-icon {
+        color: rgba(var(--v-theme-on-surface), 0.6);
+    }
+}
+
+.empty-state__title {
+    margin-top: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.empty-state__text {
+    max-width: 42ch;
+    color: rgba(var(--v-theme-on-surface), 0.68);
+}
