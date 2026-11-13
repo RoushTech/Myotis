@@ -290,6 +290,51 @@ namespace RoushTech.Myotis.Migrations
                     b.ToTable("MessageContents");
                 });
 
+            modelBuilder.Entity("RoushTech.Myotis.Data.Models.PersonalAccessToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("LastUsedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Prefix")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PersonalAccessTokens");
+                });
+
             modelBuilder.Entity("RoushTech.Myotis.Data.Models.RetentionRun", b =>
                 {
                     b.Property<Guid>("Id")
@@ -534,6 +579,17 @@ namespace RoushTech.Myotis.Migrations
                         .HasForeignKey("RoushTech.Myotis.Data.Models.MessageContent", "MessageId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("RoushTech.Myotis.Data.Models.PersonalAccessToken", b =>
+                {
+                    b.HasOne("RoushTech.Myotis.Data.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("RoushTech.Myotis.Data.Models.SmtpCredential", b =>

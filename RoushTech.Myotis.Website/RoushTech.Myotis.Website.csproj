@@ -17,6 +17,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="10.0.14" />
+    <PackageReference Include="ModelContextProtocol.AspNetCore" Version="2.1.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\RoushTech.Myotis\RoushTech.Myotis.csproj" />

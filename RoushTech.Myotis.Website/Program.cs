@@ -1,10 +1,15 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authorization;
+using ModelContextProtocol;
+using RoushTech.Myotis.Auth;
 using RoushTech.Myotis.DependencyInjection;
 using RoushTech.Myotis.Messages;
 using RoushTech.Myotis.Settings;
 using RoushTech.Myotis.Website.Binders;
 using RoushTech.Myotis.Website.Filters;
 using RoushTech.Myotis.Website.Hubs;
+using RoushTech.Myotis.Website.Mcp;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration
@@ -36,6 +41,17 @@ builder.Services
     })
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
+var mcpJson = new JsonSerializerOptions(McpJsonUtilities.DefaultOptions) { Converters = { new JsonStringEnumConverter() } };
+builder.Services
+    .AddHttpContextAccessor()
+    .AddScoped<McpToolContext>()
+    .AddMcpServer(o => o.ServerInstructions =
+        "Myotis catches email from test and staging apps so nothing is delivered. Each mailbox collects the mail an app " +
+        "sent with that mailbox's SMTP credential. To check an email your action triggered, note the time, take the " +
+        "action, then list_messages with since set to that time and read_message to get its links.")
+    .WithHttpTransport(o => o.Stateless = true)
+    .WithTools<MailMcpTools>(mcpJson);
+
 var app = builder.Build();
 
 app
@@ -49,6 +65,8 @@ app
         endpoints.MapControllers();
         endpoints.MapHealthChecks("/health");
         endpoints.MapHub<MailHub>("/hubs/mail");
+        // Token only: the browser cookie is never honoured on /mcp, so there is no CSRF surface.
+        endpoints.MapMcp("/mcp").RequireAuthorization(new AuthorizeAttribute { AuthenticationSchemes = PatAuthenticationDefaults.Scheme });
         // An unmatched API route is a 404, never the SPA shell.
         endpoints.MapFallback("/api/{**rest}", (HttpContext context) =>
         {

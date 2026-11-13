@@ -16,6 +16,11 @@ const routes: RouteRecordRaw[] = [
         }),
     },
     {
+        path: "/tokens",
+        name: "Tokens",
+        component: () => import("@v/TokensView.vue"),
+    },
+    {
         path: "/admin/mailboxes",
         name: "AdminMailboxes",
         component: () => import("@v/admin/AdminMailboxesView.vue"),

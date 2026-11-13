@@ -19,7 +19,9 @@ public record MessageDetail(
     string? Text,
     bool HasHtml,
     int RemoteImageCount,
-    IReadOnlyList<AttachmentInfo> Attachments);
+    IReadOnlyList<AttachmentInfo> Attachments,
+    string? Html,
+    IReadOnlyList<string> Links);
 
 public record AttachmentContent(string FileName, byte[] Content);
 
@@ -27,9 +29,18 @@ public partial class MessageReader(MyotisDbContext db)
 {
     private const int ListLimit = 500;
 
-    public Task<List<MessageSummary>> ListAsync(Mailbox mailbox, string? search, CancellationToken cancellationToken)
+    public Task<List<MessageSummary>> ListAsync(Mailbox mailbox, string? search, CancellationToken cancellationToken) =>
+        ListAsync(mailbox, search, since: null, cancellationToken);
+
+    public Task<List<MessageSummary>> ListAsync(Mailbox mailbox, string? search, DateTime? since, CancellationToken cancellationToken)
     {
         var messages = db.Messages.Where(m => m.MailboxId == mailbox.Id);
+        if (since is { } after)
+        {
+            var utc = after.ToUniversalTime();
+            messages = messages.Where(m => m.ReceivedAt > utc);
+        }
+
         if (!string.IsNullOrWhiteSpace(search))
         {
             var pattern = $"%{search.Trim().Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_")}%";
@@ -53,7 +64,9 @@ public partial class MessageReader(MyotisDbContext db)
             parsed.TextBody,
             html is not null,
             html is null ? 0 : RemoteImage().Matches(html).Count,
-            [.. Attachments(parsed).Select((part, index) => new AttachmentInfo(index, FileName(part, index), part.ContentType.MimeType, Measure(part)))]);
+            [.. Attachments(parsed).Select((part, index) => new AttachmentInfo(index, FileName(part, index), part.ContentType.MimeType, Measure(part)))],
+            html,
+            Links(html, parsed.TextBody));
     }
 
     // Inline cid: images become data: URIs, because the sandboxed frame can't fetch anything else from Myotis.
@@ -108,6 +121,14 @@ public partial class MessageReader(MyotisDbContext db)
     private static readonly System.Linq.Expressions.Expression<Func<Message, MessageSummary>> Summary =
         m => new MessageSummary(m.Id, m.MailboxId, m.ReceivedAt, m.Subject, m.From, m.To, m.Cc, m.Size, m.AttachmentCount, m.IsRead);
 
+    // Agents follow the reset or invite link an app just sent, so every link in the HTML and text comes back in order.
+    private static List<string> Links(string? html, string? text)
+    {
+        var fromHtml = html is null ? [] : HtmlLink().Matches(html).Select(m => System.Net.WebUtility.HtmlDecode(m.Groups["url"].Value));
+        var fromText = text is null ? [] : TextLink().Matches(text).Select(m => m.Value.TrimEnd('.', ',', ')', '>'));
+        return [.. fromHtml.Concat(fromText).Distinct()];
+    }
+
     private async Task<MimeMessage> ParseAsync(Message message, CancellationToken cancellationToken)
     {
         using var stream = new MemoryStream(await RawAsync(message, cancellationToken), writable: false);
@@ -127,6 +148,12 @@ public partial class MessageReader(MyotisDbContext db)
 
     [GeneratedRegex("""<img\b[^>]*\bsrc\s*=\s*["']?\s*(https?:)?//""", RegexOptions.IgnoreCase)]
     private static partial Regex RemoteImage();
+
+    [GeneratedRegex("""<a\b[^>]*\bhref\s*=\s*["'](?<url>https?://[^"']+)["']""", RegexOptions.IgnoreCase)]
+    private static partial Regex HtmlLink();
+
+    [GeneratedRegex(@"https?://[^\s<>""']+", RegexOptions.IgnoreCase)]
+    private static partial Regex TextLink();
 
     [GeneratedRegex("""cid:(?<id>[^"'\s)>]+)""", RegexOptions.IgnoreCase)]
     private static partial Regex ContentIdReference();

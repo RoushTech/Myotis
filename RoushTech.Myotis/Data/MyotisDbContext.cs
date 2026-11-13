@@ -24,6 +24,8 @@ public class MyotisDbContext(DbContextOptions<MyotisDbContext> options)
 
     public DbSet<RetentionRun> RetentionRuns => Set<RetentionRun>();
 
+    public DbSet<PersonalAccessToken> PersonalAccessTokens => Set<PersonalAccessToken>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

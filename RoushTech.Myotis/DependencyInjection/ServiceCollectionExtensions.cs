@@ -1,5 +1,6 @@
 namespace RoushTech.Myotis.DependencyInjection;
 
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -70,9 +71,13 @@ public static class ServiceCollectionExtensions
                     context.Response.StatusCode = StatusCodes.Status403Forbidden;
                     return Task.CompletedTask;
                 };
-            });
+            })
+            // Parameterless so the cookie schemes AddIdentity registered stay the default.
+            .AddAuthentication()
+            .AddScheme<AuthenticationSchemeOptions, PatAuthenticationHandler>(PatAuthenticationDefaults.Scheme, null);
 
         services.AddScoped<UserService>();
+        services.AddScoped<PersonalAccessTokenService>();
         services.AddScoped<MailboxService>();
         services.AddScoped<SmtpCredentialService>();
         services.AddScoped<MessageIntake>();

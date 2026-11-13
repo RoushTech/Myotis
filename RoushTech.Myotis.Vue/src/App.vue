@@ -68,6 +68,12 @@
                     <v-divider />
                     <v-list nav density="compact">
                         <v-list-item
+                            prepend-icon="mdi-key-outline"
+                            title="Access tokens"
+                            :to="{ name: 'Tokens' }"
+                            color="primary"
+                        />
+                        <v-list-item
                             prepend-icon="mdi-logout"
                             title="Sign out"
                             :subtitle="auth.me?.email ?? ''"
