@@ -11,6 +11,9 @@ public class SmtpOptions
 
     public CertificateOptions Certificate { get; set; } = new();
 
+    // Comma-separated addresses or CIDR ranges whose PROXY header is believed, such as the Traefik network.
+    public string TrustedProxies { get; set; } = "";
+
     public List<SmtpListenerOptions> Listeners { get; set; } = [];
 }
 

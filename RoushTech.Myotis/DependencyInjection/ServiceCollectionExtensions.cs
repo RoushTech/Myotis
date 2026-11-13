@@ -83,6 +83,10 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<CredentialAuthenticator>();
         services.AddSingleton<MailboxMessageStore>();
         services.AddSingleton<PemCertificateFactory>();
+        services.AddSingleton<ClientAddress>();
+        services.AddSingleton<SignInGuard>();
+        services.AddSingleton<SendRateLimiter>();
+        services.AddSingleton<RateLimitingMailboxFilter>();
         services.AddSingleton<SmtpConnectionInfo>();
         services.AddHostedService<RoleSeeder>();
         services.AddHostedService<UserSeeder>();

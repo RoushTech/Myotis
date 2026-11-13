@@ -14,6 +14,7 @@ public class SmtpListener(
     IHostEnvironment environment,
     CredentialAuthenticator authenticator,
     MailboxMessageStore store,
+    RateLimitingMailboxFilter rateLimit,
     PemCertificateFactory certificates,
     ILogger<SmtpListener> logger) : BackgroundService
 {
@@ -34,7 +35,9 @@ public class SmtpListener(
 
         var builder = new SmtpServerOptionsBuilder()
             .ServerName(options.Value.ServerName)
-            .MaxMessageSize(limits.CurrentValue.MaxMessageBytes, MaxMessageSizeHandling.Strict);
+            .MaxMessageSize(limits.CurrentValue.MaxMessageBytes, MaxMessageSizeHandling.Strict)
+            // Myotis counts failed sign-ins itself so the limit can change at runtime; this only backstops it.
+            .MaxAuthenticationAttempts(1000);
         foreach (var listener in listeners)
         {
             builder.Endpoint(endpoint =>
@@ -54,6 +57,7 @@ public class SmtpListener(
         var services = new ServiceProvider();
         services.Add(authenticator);
         services.Add(store);
+        services.Add(rateLimit);
 
         var serverOptions = builder.Build();
         // The library reads this object on every EHLO, MAIL and DATA, so changing it applies a new cap to the next message.
