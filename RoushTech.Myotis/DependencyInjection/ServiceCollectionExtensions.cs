@@ -12,6 +12,8 @@ using RoushTech.Myotis.Configuration;
 using RoushTech.Myotis.Data;
 using RoushTech.Myotis.Data.Models;
 using RoushTech.Myotis.Mailboxes;
+using RoushTech.Myotis.Messages;
+using RoushTech.Myotis.Smtp;
 using RoushTech.Myotis.Users;
 
 public static class ServiceCollectionExtensions
@@ -19,6 +21,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddMyotis(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<MyotisOptions>(configuration.GetSection(MyotisOptions.Section));
+        services.Configure<SmtpOptions>(configuration.GetSection(SmtpOptions.Section));
         services.TryAddSingleton(TimeProvider.System);
         services.AddDbContext<MyotisDbContext>(o => o.UseSqlite(configuration.GetConnectionString("Default")));
 
@@ -61,8 +64,12 @@ public static class ServiceCollectionExtensions
         services.AddScoped<UserService>();
         services.AddScoped<MailboxService>();
         services.AddScoped<SmtpCredentialService>();
+        services.AddScoped<MessageIntake>();
+        services.AddSingleton<CredentialAuthenticator>();
+        services.AddSingleton<MailboxMessageStore>();
         services.AddHostedService<RoleSeeder>();
         services.AddHostedService<UserSeeder>();
+        services.AddHostedService<SmtpListener>();
         return services;
     }
 }

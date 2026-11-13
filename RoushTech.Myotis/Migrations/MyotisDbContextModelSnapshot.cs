@@ -181,6 +181,82 @@ namespace RoushTech.Myotis.Migrations
                     b.ToTable("MailboxGrants");
                 });
 
+            modelBuilder.Entity("RoushTech.Myotis.Data.Models.Message", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("AttachmentCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Cc")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EnvelopeFrom")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.PrimitiveCollection<string>("EnvelopeTo")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("From")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("MailboxId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MessageIdHeader")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ReceivedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("SentAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Size")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("To")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MailboxId", "ReceivedAt");
+
+                    b.ToTable("Messages");
+                });
+
+            modelBuilder.Entity("RoushTech.Myotis.Data.Models.MessageContent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("MessageId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("Raw")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MessageId")
+                        .IsUnique();
+
+                    b.ToTable("MessageContents");
+                });
+
             modelBuilder.Entity("RoushTech.Myotis.Data.Models.Role", b =>
                 {
                     b.Property<Guid>("Id")
@@ -384,6 +460,26 @@ namespace RoushTech.Myotis.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("RoushTech.Myotis.Data.Models.Message", b =>
+                {
+                    b.HasOne("RoushTech.Myotis.Data.Models.Mailbox", "Mailbox")
+                        .WithMany()
+                        .HasForeignKey("MailboxId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Mailbox");
+                });
+
+            modelBuilder.Entity("RoushTech.Myotis.Data.Models.MessageContent", b =>
+                {
+                    b.HasOne("RoushTech.Myotis.Data.Models.Message", null)
+                        .WithOne("Content")
+                        .HasForeignKey("RoushTech.Myotis.Data.Models.MessageContent", "MessageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("RoushTech.Myotis.Data.Models.SmtpCredential", b =>
                 {
                     b.HasOne("RoushTech.Myotis.Data.Models.Mailbox", "Mailbox")
@@ -400,6 +496,12 @@ namespace RoushTech.Myotis.Migrations
                     b.Navigation("Credentials");
 
                     b.Navigation("Grants");
+                });
+
+            modelBuilder.Entity("RoushTech.Myotis.Data.Models.Message", b =>
+                {
+                    b.Navigation("Content")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("RoushTech.Myotis.Data.Models.User", b =>

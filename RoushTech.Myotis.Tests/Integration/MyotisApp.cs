@@ -1,6 +1,8 @@
 namespace RoushTech.Myotis.Tests.Integration;
 
+using System.Net;
 using System.Net.Http.Json;
+using System.Net.Sockets;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Identity;
@@ -8,13 +10,15 @@ using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
 using RoushTech.Myotis.Data.Models;
 
-public sealed class MyotisApp(bool seedAdministrator = true) : WebApplicationFactory<Program>
+public sealed class MyotisApp(bool seedAdministrator = true, bool smtp = false, string environment = "Development") : WebApplicationFactory<Program>
 {
     public const string AdminEmail = "admin@example.test";
 
     public const string AdminPassword = "Password1";
 
     private readonly string databasePath = Path.Combine(Path.GetTempPath(), $"myotis-{Guid.NewGuid():N}.db");
+
+    public int SmtpPort { get; } = smtp ? FreePort() : 0;
 
     public async Task<HttpClient> SignInAsync(string email, string password)
     {
@@ -49,12 +53,24 @@ public sealed class MyotisApp(bool seedAdministrator = true) : WebApplicationFac
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        builder.UseEnvironment(environment);
         builder.UseSetting("ConnectionStrings:Default", $"Data Source={databasePath}");
+        if (smtp)
+        {
+            builder.UseSetting("Myotis:Smtp:Listeners:0:Port", SmtpPort.ToString());
+        }
         if (seedAdministrator)
         {
             builder.UseSetting("Myotis:Seed:AdminEmail", AdminEmail);
             builder.UseSetting("Myotis:Seed:AdminPassword", AdminPassword);
         }
+    }
+
+    private static int FreePort()
+    {
+        using var probe = new TcpListener(IPAddress.Loopback, 0);
+        probe.Start();
+        return ((IPEndPoint)probe.LocalEndpoint).Port;
     }
 
     protected override void Dispose(bool disposing)

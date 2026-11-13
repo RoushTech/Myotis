@@ -16,6 +16,10 @@ public class MyotisDbContext(DbContextOptions<MyotisDbContext> options)
 
     public DbSet<MailboxGrant> MailboxGrants => Set<MailboxGrant>();
 
+    public DbSet<Message> Messages => Set<Message>();
+
+    public DbSet<MessageContent> MessageContents => Set<MessageContent>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
