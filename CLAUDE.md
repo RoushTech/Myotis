@@ -105,7 +105,7 @@ Any new setting goes in all three. The exception is a setting administrators cha
 
 ## Deployment
 
-Polecat deploys Myotis from a `myotis/` folder in the deployments repo (`ssh://git@source.roushtech.net:22224/roushtech/deployments.git`), as it does Tamias: `stack.yml` maps Polecat variables to the app's settings, and the values live on the `myotis` app in Polecat. One replica with a pinned volume for the SQLite file. Traefik routes the web UI by host and terminates implicit TLS on 465 with a TCP router, forwarding plaintext SMTP to the app.
+Polecat deploys Myotis from a `myotis/` folder in the deployments repo (`ssh://git@source.roushtech.net:22224/roushtech/deployments.git`), as it does Tamias: `stack.yml` sets every setting as an environment variable from Polecat variables, and the values live on the `myotis` app in Polecat. Every `#{token}` in `appsettings.json` must be overridden there, because a token left in a number or enum setting fails startup. One replica on the manager node with a named volume for the SQLite file, updated stop-first so two tasks never open it. Traefik routes the web UI by host and terminates implicit TLS on its `smtps` entrypoint (465) with a TCP router, forwarding plaintext SMTP with a PROXY v1 header to a `Proxy` listener on 2525. TeamCity builds the image from the `RoushTech_Myotis` project in the teamcity settings repo.
 
 **Always:** when a change adds or renames a setting or secret, add it to `myotis/stack.yml` and set its variables on the `myotis` app in Polecat for every environment (`CHANGEME` when the value is unknown, and say so), in the same piece of work.
 

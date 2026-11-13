@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
 using ModelContextProtocol;
 using RoushTech.Myotis.Auth;
 using RoushTech.Myotis.DependencyInjection;
@@ -21,6 +22,8 @@ builder.Configuration
 var instanceSettings = new InstanceSettingsConfigurationSource();
 ((IConfigurationBuilder)builder.Configuration).Add(instanceSettings);
 
+var webProxies = (builder.Configuration["Myotis:Web:TrustedProxies"] ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
 builder.Services
     .AddLogging(opt => { opt.AddSimpleConsole(o => { o.TimestampFormat = "[HH:mm:ss] "; }); })
     .AddSingleton(instanceSettings)
@@ -29,6 +32,16 @@ builder.Services
     .AddAuthorization()
     .AddHealthChecks()
     .Services
+    .Configure<ForwardedHeadersOptions>(o =>
+    {
+        o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        o.KnownIPNetworks.Clear();
+        o.KnownProxies.Clear();
+        foreach (var entry in webProxies)
+        {
+            o.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(entry.Contains('/') ? entry : $"{entry}/{(entry.Contains(':') ? 128 : 32)}"));
+        }
+    })
     .AddScoped<MailboxAccessFilter>()
     .AddSignalR()
     .Services
@@ -53,6 +66,12 @@ builder.Services
     .WithTools<MailMcpTools>(mcpJson);
 
 var app = builder.Build();
+
+// With no known proxies the middleware would believe any client, so it only runs when proxies are listed.
+if (webProxies.Length > 0)
+{
+    app.UseForwardedHeaders();
+}
 
 app
     .UseDefaultFiles()
