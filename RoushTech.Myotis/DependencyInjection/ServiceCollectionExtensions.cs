@@ -21,7 +21,11 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddMyotis(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<MyotisOptions>(configuration.GetSection(MyotisOptions.Section));
-        services.Configure<SmtpOptions>(configuration.GetSection(SmtpOptions.Section));
+        services.AddOptions<SmtpOptions>()
+            .Bind(configuration.GetSection(SmtpOptions.Section))
+            .Validate(o => o.Certificate.IsConfigured || !o.Listeners.Any(l => l.NeedsCertificate),
+                "Myotis:Smtp:Certificate needs CertificatePath and KeyPath for Implicit and StartTls listeners")
+            .ValidateOnStart();
         services.TryAddSingleton(TimeProvider.System);
         services.AddDbContext<MyotisDbContext>(o => o.UseSqlite(configuration.GetConnectionString("Default")));
 
@@ -67,6 +71,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<MessageIntake>();
         services.AddSingleton<CredentialAuthenticator>();
         services.AddSingleton<MailboxMessageStore>();
+        services.AddSingleton<PemCertificateFactory>();
+        services.AddSingleton<SmtpConnectionInfo>();
         services.AddHostedService<RoleSeeder>();
         services.AddHostedService<UserSeeder>();
         services.AddHostedService<SmtpListener>();

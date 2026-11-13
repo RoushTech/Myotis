@@ -10,7 +10,11 @@ using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
 using RoushTech.Myotis.Data.Models;
 
-public sealed class MyotisApp(bool seedAdministrator = true, bool smtp = false, string environment = "Development") : WebApplicationFactory<Program>
+public sealed class MyotisApp(
+    bool seedAdministrator = true,
+    bool smtp = false,
+    string environment = "Development",
+    IReadOnlyDictionary<string, string>? settings = null) : WebApplicationFactory<Program>
 {
     public const string AdminEmail = "admin@example.test";
 
@@ -53,11 +57,18 @@ public sealed class MyotisApp(bool seedAdministrator = true, bool smtp = false, 
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        // The website's production appsettings.json carries #{tokens}; tests run on their own copy in the output folder.
+        builder.UseContentRoot(AppContext.BaseDirectory);
         builder.UseEnvironment(environment);
         builder.UseSetting("ConnectionStrings:Default", $"Data Source={databasePath}");
         if (smtp)
         {
             builder.UseSetting("Myotis:Smtp:Listeners:0:Port", SmtpPort.ToString());
+        }
+
+        foreach (var (key, value) in settings ?? new Dictionary<string, string>())
+        {
+            builder.UseSetting(key, value);
         }
         if (seedAdministrator)
         {
@@ -66,7 +77,7 @@ public sealed class MyotisApp(bool seedAdministrator = true, bool smtp = false, 
         }
     }
 
-    private static int FreePort()
+    public static int FreePort()
     {
         using var probe = new TcpListener(IPAddress.Loopback, 0);
         probe.Start();

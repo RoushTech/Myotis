@@ -42,6 +42,20 @@
                     it's lost, revoke this credential and add another.
                 </v-alert>
                 <dl class="key-values">
+                    <template v-if="connection">
+                        <dt>Host</dt>
+                        <dd class="text-mono">{{ connection.host }}</dd>
+                        <dt>Port</dt>
+                        <dd>
+                            <span v-if="!connection.ports.length" class="text-medium-emphasis">
+                                No SMTP listener is set up yet
+                            </span>
+                            <template v-for="(port, index) in connection.ports" :key="port.port">
+                                <span v-if="index > 0"> or </span>
+                                <span class="text-mono">{{ port.port }}</span> ({{ port.security }})
+                            </template>
+                        </dd>
+                    </template>
                     <dt>Username</dt>
                     <dd class="text-mono">{{ created.credential.username }}</dd>
                     <dt>Sign-in</dt>
@@ -75,12 +89,15 @@
 
 <script setup lang="ts">
 import { ref, watch } from "vue";
+import { useQuery } from "@pinia/colada";
 import { mailboxApi, type CreatedCredential, type Mailbox } from "@/api/mailboxes";
 import { errorMessage } from "@/api/errors";
 import { useInvalidateMailboxes } from "@/queries/mailboxes";
+import { smtpConnectionQuery } from "@/queries/smtp";
 
 const props = defineProps<{ mailbox: Mailbox }>();
 const invalidate = useInvalidateMailboxes();
+const { data: connection } = useQuery(smtpConnectionQuery);
 const open = ref(false);
 const username = ref("");
 const busy = ref(false);

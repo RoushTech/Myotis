@@ -24,3 +24,7 @@ public class CredentialRequest
 {
     public required string Username { get; init; }
 }
+
+public record SmtpPortResponse(int Port, string Security);
+
+public record SmtpConnectionResponse(string Host, List<SmtpPortResponse> Ports);
