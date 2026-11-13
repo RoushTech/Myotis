@@ -22,6 +22,9 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton(TimeProvider.System);
         services.AddDbContext<MyotisDbContext>(o => o.UseSqlite(configuration.GetConnectionString("Default")));
 
+        // Hosted services start in order, and data protection reads its keys from the database on start.
+        services.AddHostedService<DatabaseMigrator>();
+
         services
             .AddIdentity<User, Role>(options =>
             {
@@ -38,6 +41,7 @@ public static class ServiceCollectionExtensions
             .PersistKeysToDbContext<MyotisDbContext>()
             .SetApplicationName("RoushTech.Myotis")
             .Services
+            .Configure<SecurityStampValidatorOptions>(o => o.ValidationInterval = TimeSpan.FromMinutes(1))
             .ConfigureApplicationCookie(options =>
             {
                 options.Cookie.Name = "myotis";
@@ -57,7 +61,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<UserService>();
         services.AddScoped<MailboxService>();
         services.AddScoped<SmtpCredentialService>();
-        services.AddHostedService<DatabaseMigrator>();
         services.AddHostedService<RoleSeeder>();
         services.AddHostedService<UserSeeder>();
         return services;

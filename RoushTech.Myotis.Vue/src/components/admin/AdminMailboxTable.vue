@@ -28,12 +28,13 @@
                     <tr>
                         <th>Name</th>
                         <th class="text-end">Credentials</th>
+                        <th class="text-end">People</th>
                         <th>Created</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-if="!filtered.length">
-                        <td colspan="3" class="text-medium-emphasis">
+                        <td colspan="4" class="text-medium-emphasis">
                             No mailbox matches "{{ search }}".
                         </td>
                     </tr>
@@ -45,6 +46,7 @@
                     >
                         <td class="font-weight-medium">{{ mailbox.name }}</td>
                         <td class="text-end">{{ mailbox.credentialCount }}</td>
+                        <td class="text-end">{{ mailbox.peopleCount }}</td>
                         <td class="text-medium-emphasis">{{ shortDate(mailbox.createdAt) }}</td>
                     </tr>
                 </tbody>

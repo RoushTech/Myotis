@@ -51,7 +51,7 @@
                     :model-value="created.password"
                     label="Password"
                     readonly
-                    class="text-mono mt-4"
+                    class="mono-input mt-4"
                     hide-details
                 >
                     <template #append-inner>

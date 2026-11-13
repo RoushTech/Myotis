@@ -20,6 +20,12 @@ const routes: RouteRecordRaw[] = [
         meta: { admin: true },
     },
     {
+        path: "/admin/users",
+        name: "AdminUsers",
+        component: () => import("@v/admin/AdminUsersView.vue"),
+        meta: { admin: true },
+    },
+    {
         path: "/login",
         name: "Login",
         component: () => import("@v/auth/LoginView.vue"),

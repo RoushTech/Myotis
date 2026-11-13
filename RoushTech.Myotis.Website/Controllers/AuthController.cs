@@ -25,6 +25,7 @@ public class AuthController(UserManager<User> users, SignInManager<User> signIn,
     {
         var user = await userService.CreateFirstAdministratorAsync(request.Email, request.Password, cancellationToken);
         await signIn.SignInAsync(user, isPersistent: true);
+        await userService.RecordSignInAsync(user);
         return await MeAsync(user);
     }
 
@@ -44,7 +45,13 @@ public class AuthController(UserManager<User> users, SignInManager<User> signIn,
             return Problem("Too many failed attempts. Try again in 15 minutes.", StatusCodes.Status401Unauthorized);
         }
 
-        return result.Succeeded ? await MeAsync(user) : Problem(WrongCredentials, StatusCodes.Status401Unauthorized);
+        if (!result.Succeeded)
+        {
+            return Problem(WrongCredentials, StatusCodes.Status401Unauthorized);
+        }
+
+        await userService.RecordSignInAsync(user);
+        return await MeAsync(user);
     }
 
     [HttpPost("logout")]

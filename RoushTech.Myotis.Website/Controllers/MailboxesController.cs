@@ -14,22 +14,19 @@ public class MailboxesController(MailboxService mailboxes) : ControllerBase
     [HttpGet("api/v0/mailboxes")]
     public async Task<IEnumerable<MailboxResponse>> List(CancellationToken cancellationToken) =>
         (await mailboxes.ListVisibleAsync(User.RequiredUserId(), User.IsAdministrator(), cancellationToken))
-            .Select(m => new MailboxResponse(m.Id, m.Name, m.CreatedAt, m.CredentialCount));
+            .Select(MailboxResponse.From);
 
     [HttpPost("api/v0/mailboxes")]
     [Authorize(Roles = MyotisRoles.Administrator)]
     public async Task<MailboxResponse> Create(MailboxRequest request, CancellationToken cancellationToken)
     {
         var mailbox = await mailboxes.CreateAsync(request.Name, cancellationToken);
-        return new MailboxResponse(mailbox.Id, mailbox.Name, mailbox.CreatedAt, 0);
+        return new MailboxResponse(mailbox.Id, mailbox.Name, mailbox.CreatedAt, 0, 0);
     }
 
     [HttpGet("api/v0/mailboxes/{mailbox}")]
-    public async Task<MailboxResponse> Get([FromRoute] Mailbox mailbox, CancellationToken cancellationToken)
-    {
-        var summary = await mailboxes.SummaryAsync(mailbox, cancellationToken);
-        return new MailboxResponse(summary.Id, summary.Name, summary.CreatedAt, summary.CredentialCount);
-    }
+    public async Task<MailboxResponse> Get([FromRoute] Mailbox mailbox, CancellationToken cancellationToken) =>
+        MailboxResponse.From(await mailboxes.SummaryAsync(mailbox, cancellationToken));
 
     [HttpDelete("api/v0/mailboxes/{mailbox}")]
     [Authorize(Roles = MyotisRoles.Administrator)]

@@ -15,6 +15,8 @@ public class Mailbox : IMailboxScoped, IEntityTypeConfiguration<Mailbox>
 
     public List<SmtpCredential> Credentials { get; set; } = [];
 
+    public List<MailboxGrant> Grants { get; set; } = [];
+
     Guid IMailboxScoped.MailboxId => Id;
 
     public void Configure(EntityTypeBuilder<Mailbox> builder)

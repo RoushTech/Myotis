@@ -4,31 +4,21 @@ using Microsoft.EntityFrameworkCore;
 using RoushTech.Myotis.Data;
 using RoushTech.Myotis.Data.Models;
 
-public record MailboxSummary(Guid Id, string Name, DateTime CreatedAt, int CredentialCount);
+public record MailboxSummary(Guid Id, string Name, DateTime CreatedAt, int CredentialCount, int PeopleCount);
 
 public class MailboxService(MyotisDbContext db, TimeProvider time)
 {
     public async Task<bool> CanSeeAsync(Guid mailboxId, Guid userId, bool isAdministrator, CancellationToken cancellationToken) =>
-        isAdministrator && await db.Mailboxes.AnyAsync(m => m.Id == mailboxId, cancellationToken);
+        isAdministrator
+            ? await db.Mailboxes.AnyAsync(m => m.Id == mailboxId, cancellationToken)
+            : await db.MailboxGrants.AnyAsync(g => g.MailboxId == mailboxId && g.UserId == userId, cancellationToken);
 
-    public async Task<List<MailboxSummary>> ListVisibleAsync(Guid userId, bool isAdministrator, CancellationToken cancellationToken)
-    {
-        if (!isAdministrator)
-        {
-            return [];
-        }
-
-        return await db.Mailboxes
-            .OrderBy(m => m.Name)
-            .Select(m => new MailboxSummary(m.Id, m.Name, m.CreatedAt, m.Credentials.Count))
+    public Task<List<MailboxSummary>> ListVisibleAsync(Guid userId, bool isAdministrator, CancellationToken cancellationToken) =>
+        Summaries(db.Mailboxes.Where(m => isAdministrator || m.Grants.Any(g => g.UserId == userId)).OrderBy(m => m.Name))
             .ToListAsync(cancellationToken);
-    }
 
     public Task<MailboxSummary> SummaryAsync(Mailbox mailbox, CancellationToken cancellationToken) =>
-        db.Mailboxes
-            .Where(m => m.Id == mailbox.Id)
-            .Select(m => new MailboxSummary(m.Id, m.Name, m.CreatedAt, m.Credentials.Count))
-            .SingleAsync(cancellationToken);
+        Summaries(db.Mailboxes.Where(m => m.Id == mailbox.Id)).SingleAsync(cancellationToken);
 
     public async Task<Mailbox> CreateAsync(string name, CancellationToken cancellationToken)
     {
@@ -54,4 +44,7 @@ public class MailboxService(MyotisDbContext db, TimeProvider time)
         db.Mailboxes.Remove(mailbox);
         await db.SaveChangesAsync(cancellationToken);
     }
+
+    private static IQueryable<MailboxSummary> Summaries(IQueryable<Mailbox> mailboxes) =>
+        mailboxes.Select(m => new MailboxSummary(m.Id, m.Name, m.CreatedAt, m.Credentials.Count, m.Grants.Count));
 }

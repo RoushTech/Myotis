@@ -19,6 +19,9 @@ public static class HttpClientExtensions
         return (await response.Content.ReadFromJsonAsync<T>())!;
     }
 
+    public static Task<UserResponse> CreateUserAsync(this HttpClient admin, string email, params Guid[] mailboxIds) =>
+        admin.PostAsync<UserResponse>("/api/v0/users", new { email, password = "user password 1", mailboxIds });
+
     public static Task<MailboxResponse> CreateMailboxAsync(this HttpClient admin, string name) =>
         admin.PostAsync<MailboxResponse>("/api/v0/mailboxes", new { name });
 

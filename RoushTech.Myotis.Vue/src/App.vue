@@ -32,6 +32,12 @@
                             :to="{ name: 'AdminMailboxes' }"
                             color="primary"
                         />
+                        <v-list-item
+                            prepend-icon="mdi-account-multiple-outline"
+                            title="Users"
+                            :to="{ name: 'AdminUsers' }"
+                            color="primary"
+                        />
                     </template>
                 </v-list>
                 <template #append>

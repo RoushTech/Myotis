@@ -25,6 +25,7 @@
             </div>
             <div class="stack">
                 <CredentialsCard :mailbox="mailbox" />
+                <PeopleCard :mailbox="mailbox" />
                 <DeleteMailboxCard :mailbox="mailbox" />
             </div>
         </template>
@@ -39,6 +40,7 @@ import { shortDate } from "@/lib/dates";
 import { mailboxQuery } from "@/queries/mailboxes";
 import CredentialsCard from "@c/admin/CredentialsCard.vue";
 import DeleteMailboxCard from "@c/admin/DeleteMailboxCard.vue";
+import PeopleCard from "@c/admin/PeopleCard.vue";
 import ErrorAlert from "@c/ErrorAlert.vue";
 
 const props = defineProps<{ mailboxId: MailboxId }>();

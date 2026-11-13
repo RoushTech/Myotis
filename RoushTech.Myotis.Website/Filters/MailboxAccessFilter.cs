@@ -14,13 +14,16 @@ public class MailboxAccessFilter(MailboxService mailboxes) : IAsyncActionFilter
         var bound = new List<IMailboxScoped>();
         foreach (var parameter in context.ActionDescriptor.Parameters.Where(p => p.ParameterType.IsAssignableTo(typeof(IEntityBinding))))
         {
-            if (!context.ActionArguments.TryGetValue(parameter.Name, out var value) || value is not IMailboxScoped scoped)
+            if (!context.ActionArguments.TryGetValue(parameter.Name, out var value) || value is null)
             {
                 context.Result = new NotFoundResult();
                 return;
             }
 
-            bound.Add(scoped);
+            if (value is IMailboxScoped scoped)
+            {
+                bound.Add(scoped);
+            }
         }
 
         var mailboxIds = bound.Select(e => e.MailboxId).Distinct().ToList();

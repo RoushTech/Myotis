@@ -114,6 +114,10 @@ html {
     font-size: 0.8125rem;
 }
 
+.mono-input input {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
 .key-values {
     display: grid;
     grid-template-columns: max-content 1fr;
@@ -127,6 +131,36 @@ html {
         min-width: 0;
         overflow-wrap: anywhere;
     }
+}
+
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.user-dialog {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.mailbox-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mailbox-picker__label {
+    font-weight: 600;
+}
+
+.mailbox-picker__list {
+    max-height: 220px;
+    overflow-y: auto;
+    padding: 2px 8px;
+    border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+    border-radius: 4px;
 }
 
 .error-alert {

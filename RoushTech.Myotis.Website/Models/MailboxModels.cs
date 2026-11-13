@@ -1,8 +1,12 @@
 namespace RoushTech.Myotis.Website.Models;
 
 using RoushTech.Myotis.Data.Models;
+using RoushTech.Myotis.Mailboxes;
 
-public record MailboxResponse(Guid Id, string Name, DateTime CreatedAt, int CredentialCount);
+public record MailboxResponse(Guid Id, string Name, DateTime CreatedAt, int CredentialCount, int PeopleCount)
+{
+    public static MailboxResponse From(MailboxSummary m) => new(m.Id, m.Name, m.CreatedAt, m.CredentialCount, m.PeopleCount);
+}
 
 public class MailboxRequest
 {

@@ -8,6 +8,7 @@ export type Mailbox = {
     name: string;
     createdAt: string;
     credentialCount: number;
+    peopleCount: number;
 };
 
 export type Credential = {

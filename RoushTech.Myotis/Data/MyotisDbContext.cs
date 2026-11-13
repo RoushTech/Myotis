@@ -14,6 +14,8 @@ public class MyotisDbContext(DbContextOptions<MyotisDbContext> options)
 
     public DbSet<SmtpCredential> SmtpCredentials => Set<SmtpCredential>();
 
+    public DbSet<MailboxGrant> MailboxGrants => Set<MailboxGrant>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

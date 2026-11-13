@@ -156,6 +156,31 @@ namespace RoushTech.Myotis.Migrations
                     b.ToTable("Mailboxes");
                 });
 
+            modelBuilder.Entity("RoushTech.Myotis.Data.Models.MailboxGrant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("MailboxId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MailboxId");
+
+                    b.HasIndex("UserId", "MailboxId")
+                        .IsUnique();
+
+                    b.ToTable("MailboxGrants");
+                });
+
             modelBuilder.Entity("RoushTech.Myotis.Data.Models.Role", b =>
                 {
                     b.Property<Guid>("Id")
@@ -240,6 +265,9 @@ namespace RoushTech.Myotis.Migrations
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("LastSignInAt")
+                        .HasColumnType("TEXT");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("INTEGER");
@@ -337,6 +365,25 @@ namespace RoushTech.Myotis.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("RoushTech.Myotis.Data.Models.MailboxGrant", b =>
+                {
+                    b.HasOne("RoushTech.Myotis.Data.Models.Mailbox", "Mailbox")
+                        .WithMany("Grants")
+                        .HasForeignKey("MailboxId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("RoushTech.Myotis.Data.Models.User", "User")
+                        .WithMany("Grants")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Mailbox");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("RoushTech.Myotis.Data.Models.SmtpCredential", b =>
                 {
                     b.HasOne("RoushTech.Myotis.Data.Models.Mailbox", "Mailbox")
@@ -351,6 +398,13 @@ namespace RoushTech.Myotis.Migrations
             modelBuilder.Entity("RoushTech.Myotis.Data.Models.Mailbox", b =>
                 {
                     b.Navigation("Credentials");
+
+                    b.Navigation("Grants");
+                });
+
+            modelBuilder.Entity("RoushTech.Myotis.Data.Models.User", b =>
+                {
+                    b.Navigation("Grants");
                 });
 #pragma warning restore 612, 618
         }
