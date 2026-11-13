@@ -133,6 +133,29 @@ namespace RoushTech.Myotis.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("RoushTech.Myotis.Data.Models.Mailbox", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT")
+                        .UseCollation("NOCASE");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Mailboxes");
+                });
+
             modelBuilder.Entity("RoushTech.Myotis.Data.Models.Role", b =>
                 {
                     b.Property<Guid>("Id")
@@ -158,6 +181,41 @@ namespace RoushTech.Myotis.Migrations
                         .HasDatabaseName("RoleNameIndex");
 
                     b.ToTable("AspNetRoles", (string)null);
+                });
+
+            modelBuilder.Entity("RoushTech.Myotis.Data.Models.SmtpCredential", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("LastUsedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("MailboxId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT")
+                        .UseCollation("NOCASE");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MailboxId");
+
+                    b.HasIndex("Username")
+                        .IsUnique();
+
+                    b.ToTable("SmtpCredentials");
                 });
 
             modelBuilder.Entity("RoushTech.Myotis.Data.Models.User", b =>
@@ -277,6 +335,22 @@ namespace RoushTech.Myotis.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("RoushTech.Myotis.Data.Models.SmtpCredential", b =>
+                {
+                    b.HasOne("RoushTech.Myotis.Data.Models.Mailbox", "Mailbox")
+                        .WithMany("Credentials")
+                        .HasForeignKey("MailboxId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Mailbox");
+                });
+
+            modelBuilder.Entity("RoushTech.Myotis.Data.Models.Mailbox", b =>
+                {
+                    b.Navigation("Credentials");
                 });
 #pragma warning restore 612, 618
         }

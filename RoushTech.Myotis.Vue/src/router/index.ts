@@ -7,6 +7,19 @@ const routes: RouteRecordRaw[] = [
         component: () => import("@v/MailboxesView.vue"),
     },
     {
+        path: "/admin/mailboxes",
+        name: "AdminMailboxes",
+        component: () => import("@v/admin/AdminMailboxesView.vue"),
+        meta: { admin: true },
+    },
+    {
+        path: "/admin/mailboxes/:mailboxId",
+        name: "AdminMailbox",
+        component: () => import("@v/admin/AdminMailboxView.vue"),
+        props: true,
+        meta: { admin: true },
+    },
+    {
         path: "/login",
         name: "Login",
         component: () => import("@v/auth/LoginView.vue"),

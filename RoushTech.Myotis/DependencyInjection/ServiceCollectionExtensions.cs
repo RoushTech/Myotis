@@ -11,6 +11,7 @@ using RoushTech.Myotis.Auth;
 using RoushTech.Myotis.Configuration;
 using RoushTech.Myotis.Data;
 using RoushTech.Myotis.Data.Models;
+using RoushTech.Myotis.Mailboxes;
 using RoushTech.Myotis.Users;
 
 public static class ServiceCollectionExtensions
@@ -54,6 +55,8 @@ public static class ServiceCollectionExtensions
             });
 
         services.AddScoped<UserService>();
+        services.AddScoped<MailboxService>();
+        services.AddScoped<SmtpCredentialService>();
         services.AddHostedService<DatabaseMigrator>();
         services.AddHostedService<RoleSeeder>();
         services.AddHostedService<UserSeeder>();

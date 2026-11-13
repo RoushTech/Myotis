@@ -24,6 +24,15 @@
                     />
                     <v-list-subheader>Recent</v-list-subheader>
                     <div class="app-nav__hint">Mailboxes you open show here.</div>
+                    <template v-if="auth.isAdministrator">
+                        <v-list-subheader>Administration</v-list-subheader>
+                        <v-list-item
+                            prepend-icon="mdi-inbox-full-outline"
+                            title="Mailboxes"
+                            :to="{ name: 'AdminMailboxes' }"
+                            color="primary"
+                        />
+                    </template>
                 </v-list>
                 <template #append>
                     <v-divider />

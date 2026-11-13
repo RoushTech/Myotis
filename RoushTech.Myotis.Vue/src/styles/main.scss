@@ -60,6 +60,83 @@ html {
     padding: 24px;
 }
 
+.page-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.back-link {
+    margin: 0 0 6px -8px;
+}
+
+.stack {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.toolbar__count {
+    color: rgba(var(--v-theme-on-surface), 0.68);
+}
+
+.mailbox-search {
+    flex: 1 1 260px;
+    max-width: 420px;
+    margin-bottom: 12px;
+
+    .toolbar & {
+        margin-bottom: 0;
+    }
+}
+
+.clickable-row {
+    cursor: pointer;
+}
+
+.card-subtitle {
+    white-space: normal;
+}
+
+.text-mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.8125rem;
+}
+
+.key-values {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 8px 20px;
+
+    dt {
+        color: rgba(var(--v-theme-on-surface), 0.68);
+    }
+
+    dd {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+}
+
+.error-alert {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+}
+
 .page-title {
     font-size: 1.375rem;
     font-weight: 600;

@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using RoushTech.Myotis.DependencyInjection;
+using RoushTech.Myotis.Website.Binders;
 using RoushTech.Myotis.Website.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,7 +17,14 @@ builder.Services
     .AddAuthorization()
     .AddHealthChecks()
     .Services
-    .AddControllers(o => o.Filters.Add<UserErrorExceptionFilter>())
+    .AddScoped<MailboxAccessFilter>()
+    .AddControllers(o =>
+    {
+        o.ModelBinderProviders.Insert(0, new EntityBinderProvider());
+        o.Filters.Add<UserErrorExceptionFilter>();
+        // Ahead of [ApiController]'s model state check (-2000), which would answer a missing entity with a 400.
+        o.Filters.AddService<MailboxAccessFilter>(-3000);
+    })
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 var app = builder.Build();

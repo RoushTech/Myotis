@@ -10,6 +10,10 @@ public class MyotisDbContext(DbContextOptions<MyotisDbContext> options)
 {
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
+    public DbSet<Mailbox> Mailboxes => Set<Mailbox>();
+
+    public DbSet<SmtpCredential> SmtpCredentials => Set<SmtpCredential>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
