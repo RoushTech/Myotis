@@ -67,12 +67,38 @@ public class ReadingMailTests
 
         Assert.That(policy, Does.StartWith("default-src 'none'"));
         Assert.That(policy, Does.Contain("img-src data:;"));
-        Assert.That(policy, Does.Contain("sandbox"));
+        Assert.That(policy, Does.EndWith("; sandbox allow-popups allow-popups-to-escape-sandbox"));
         Assert.That(policy, Does.Not.Contain("script-src"));
         Assert.That(string.Join(" ", allowed.Headers.GetValues("Content-Security-Policy")), Does.Contain("img-src data: https: http:;"));
         Assert.That(blocked.Headers.GetValues("X-Content-Type-Options").Single(), Is.EqualTo("nosniff"));
         Assert.That(html, Does.Contain("src=\"data:image/png;base64,"));
         Assert.That(html, Does.Not.Contain("cid:"));
+    }
+
+    [Test]
+    public async Task EveryLinkInTheHtmlOpensInANewWindowWhileTheStoredHtmlStaysAsSent()
+    {
+        await using var app = new MyotisApp(smtp: true);
+        var (admin, mailbox, password) = await SetUpAsync(app);
+        var sent = """
+            <!-- template v2 --><!DOCTYPE html><html><head><base target="_self"></head><body>
+            <a href="https://app.example/invite" target="_top" title="opens target=elsewhere">Accept</a>
+            <AREA TARGET='_self' href="https://app.example/map"><a data-target="keep" target=_parent href="https://app.example/b">B</a>
+            </body></html>
+            """;
+        var message = SmtpClients.Message("You're invited");
+        message.Body = new MimeKit.BodyBuilder { HtmlBody = sent }.ToMessageBody();
+        await SmtpClients.SendAsync(app, "billing-staging", password, message);
+        var id = (await admin.GetAsync<List<MessageSummary>>($"/api/v0/mailboxes/{mailbox}/messages")).Single().Id;
+
+        var html = await (await admin.GetAsync($"/api/v0/mailboxes/{mailbox}/messages/{id}/html")).Content.ReadAsStringAsync();
+        var detail = await admin.GetAsync<MessageDetail>($"/api/v0/mailboxes/{mailbox}/messages/{id}");
+
+        Assert.That(html, Does.StartWith("""<!-- template v2 --><!DOCTYPE html><base target="_blank"><html><head><base target="_self">"""));
+        Assert.That(html, Does.Contain("""<a href="https://app.example/invite" title="opens target=elsewhere">"""));
+        Assert.That(html, Does.Contain("""<AREA href="https://app.example/map">"""));
+        Assert.That(html, Does.Contain("""<a data-target="keep" href="https://app.example/b">"""));
+        Assert.That(detail.Html, Does.Contain("target=\"_top\"").And.Not.Contain("_blank"));
     }
 
     [Test]
@@ -132,6 +158,34 @@ public class ReadingMailTests
 
         var crossed = await admin.GetAsync($"/api/v0/mailboxes/{other.Id}/messages/{id}");
         Assert.That(crossed.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+    }
+
+    [Test]
+    public async Task MarkingAMailboxReadClearsOnlyThatMailboxAndNeedsAccess()
+    {
+        await using var app = new MyotisApp(smtp: true);
+        var (admin, mailbox, password) = await SetUpAsync(app);
+        var other = await admin.CreateMailboxAsync("Billing hotfix");
+        var otherCredential = await admin.CreateCredentialAsync(other.Id, "billing-hotfix");
+        await admin.CreateUserAsync("lee@example.test", other.Id);
+        using var lee = await app.SignInAsync("lee@example.test", "user password 1");
+        await SmtpClients.SendAsync(app, "billing-staging", password, SmtpClients.Message("Reset your password"));
+        await SmtpClients.SendAsync(app, "billing-staging", password, SmtpClients.Message("Weekly receivables report"));
+        await SmtpClients.SendAsync(app, "billing-hotfix", otherCredential.Password, SmtpClients.Message("Hotfix deployed"));
+
+        var refused = await lee.PatchAsJsonAsync($"/api/v0/mailboxes/{mailbox}/messages", new { isRead = true });
+        var untouched = await admin.GetAsync<MailboxResponse>($"/api/v0/mailboxes/{mailbox}");
+        var marked = await admin.PatchAsJsonAsync($"/api/v0/mailboxes/{mailbox}/messages", new { isRead = true });
+        var after = await admin.GetAsync<MailboxResponse>($"/api/v0/mailboxes/{mailbox}");
+        var listed = await admin.GetAsync<List<MessageSummary>>($"/api/v0/mailboxes/{mailbox}/messages");
+        var otherAfter = await admin.GetAsync<MailboxResponse>($"/api/v0/mailboxes/{other.Id}");
+
+        Assert.That(refused.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+        Assert.That(untouched.UnreadCount, Is.EqualTo(2));
+        Assert.That(marked.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
+        Assert.That((after.MessageCount, after.UnreadCount), Is.EqualTo((2, 0)));
+        Assert.That(listed.Select(m => m.IsRead), Is.All.True);
+        Assert.That(otherAfter.UnreadCount, Is.EqualTo(1));
     }
 
     [Test]

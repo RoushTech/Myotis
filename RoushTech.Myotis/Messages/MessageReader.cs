@@ -80,7 +80,7 @@ public partial class MessageReader(MyotisDbContext db)
         }
 
         var inline = parsed.BodyParts.OfType<MimePart>().Where(p => p.ContentId is not null).ToDictionary(p => p.ContentId!, StringComparer.OrdinalIgnoreCase);
-        return ContentIdReference().Replace(html, match =>
+        return OpenLinksInNewWindow(ContentIdReference().Replace(html, match =>
         {
             if (!inline.TryGetValue(match.Groups["id"].Value, out var part))
             {
@@ -90,7 +90,16 @@ public partial class MessageReader(MyotisDbContext db)
             using var stream = new MemoryStream();
             part.Content?.DecodeTo(stream);
             return $"data:{part.ContentType.MimeType};base64,{Convert.ToBase64String(stream.ToArray())}";
-        });
+        }));
+    }
+
+    // A link that loads in the scriptless frame, or tries to replace the page around it, leaves the reader stuck.
+    private static string OpenLinksInNewWindow(string html)
+    {
+        var untargeted = LinkTag().Replace(html, tag => TargetOrQuotedValue().Replace(tag.Value, part => part.Groups["target"].Success ? "" : part.Value));
+        // Anything ahead of the doctype drops the message into quirks mode.
+        var afterPrologue = DocumentPrologue().Match(untargeted).Length;
+        return untargeted.Insert(afterPrologue, """<base target="_blank">""");
     }
 
     public async Task<byte[]> RawAsync(Message message, CancellationToken cancellationToken) =>
@@ -114,6 +123,11 @@ public partial class MessageReader(MyotisDbContext db)
         message.IsRead = isRead;
         await db.SaveChangesAsync(cancellationToken);
     }
+
+    public Task SetAllReadAsync(Mailbox mailbox, bool isRead, CancellationToken cancellationToken) =>
+        db.Messages
+            .Where(m => m.MailboxId == mailbox.Id && m.IsRead != isRead)
+            .ExecuteUpdateAsync(s => s.SetProperty(m => m.IsRead, isRead), cancellationToken);
 
     public static MessageSummary ToSummary(Message m) =>
         new(m.Id, m.MailboxId, m.ReceivedAt, m.Subject, m.From, m.To, m.Cc, m.Size, m.AttachmentCount, m.IsRead);
@@ -157,4 +171,13 @@ public partial class MessageReader(MyotisDbContext db)
 
     [GeneratedRegex("""cid:(?<id>[^"'\s)>]+)""", RegexOptions.IgnoreCase)]
     private static partial Regex ContentIdReference();
+
+    [GeneratedRegex("""<(?:a|area)\b(?:[^>"']|"[^"]*"|'[^']*')*>""", RegexOptions.IgnoreCase)]
+    private static partial Regex LinkTag();
+
+    [GeneratedRegex("""(?<target>\s+target\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+))|"[^"]*"|'[^']*'""", RegexOptions.IgnoreCase)]
+    private static partial Regex TargetOrQuotedValue();
+
+    [GeneratedRegex("""^(?:\s|<!--.*?-->|<\?[^>]*>|<!doctype[^>]*>)*""", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
+    private static partial Regex DocumentPrologue();
 }

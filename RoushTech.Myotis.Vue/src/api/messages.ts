@@ -51,6 +51,10 @@ export const messageApi = {
         await axios.patch(base(mailboxId, id), { isRead: true });
     },
 
+    async markAllRead(mailboxId: MailboxId): Promise<void> {
+        await axios.patch(`/api/v0/mailboxes/${mailboxId}/messages`, { isRead: true });
+    },
+
     async raw(mailboxId: MailboxId, id: MessageId): Promise<string> {
         return (await axios.get<string>(`${base(mailboxId, id)}/raw`, { responseType: "text" }))
             .data;

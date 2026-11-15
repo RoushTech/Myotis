@@ -329,11 +329,19 @@ html {
 
 .inbox__meta {
     display: flex;
+    flex-wrap: wrap;
+    gap: 4px 8px;
     align-items: center;
     justify-content: space-between;
     min-height: 28px;
     color: rgba(var(--v-theme-on-surface), 0.68);
     font-size: 0.75rem;
+}
+
+.inbox__actions {
+    display: flex;
+    gap: 2px;
+    margin-left: auto;
 }
 
 .inbox__messages {

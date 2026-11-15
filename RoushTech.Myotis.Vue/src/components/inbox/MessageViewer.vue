@@ -116,7 +116,7 @@
                         :key="htmlUrl"
                         class="viewer__frame"
                         title="Message HTML"
-                        sandbox=""
+                        sandbox="allow-popups allow-popups-to-escape-sandbox"
                         referrerpolicy="no-referrer"
                         :src="htmlUrl"
                     />
