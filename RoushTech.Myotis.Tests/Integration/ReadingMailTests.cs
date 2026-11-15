@@ -161,6 +161,34 @@ public class ReadingMailTests
     }
 
     [Test]
+    public async Task MarkingAMailboxReadClearsOnlyThatMailboxAndNeedsAccess()
+    {
+        await using var app = new MyotisApp(smtp: true);
+        var (admin, mailbox, password) = await SetUpAsync(app);
+        var other = await admin.CreateMailboxAsync("Billing hotfix");
+        var otherCredential = await admin.CreateCredentialAsync(other.Id, "billing-hotfix");
+        await admin.CreateUserAsync("lee@example.test", other.Id);
+        using var lee = await app.SignInAsync("lee@example.test", "user password 1");
+        await SmtpClients.SendAsync(app, "billing-staging", password, SmtpClients.Message("Reset your password"));
+        await SmtpClients.SendAsync(app, "billing-staging", password, SmtpClients.Message("Weekly receivables report"));
+        await SmtpClients.SendAsync(app, "billing-hotfix", otherCredential.Password, SmtpClients.Message("Hotfix deployed"));
+
+        var refused = await lee.PatchAsJsonAsync($"/api/v0/mailboxes/{mailbox}/messages", new { isRead = true });
+        var untouched = await admin.GetAsync<MailboxResponse>($"/api/v0/mailboxes/{mailbox}");
+        var marked = await admin.PatchAsJsonAsync($"/api/v0/mailboxes/{mailbox}/messages", new { isRead = true });
+        var after = await admin.GetAsync<MailboxResponse>($"/api/v0/mailboxes/{mailbox}");
+        var listed = await admin.GetAsync<List<MessageSummary>>($"/api/v0/mailboxes/{mailbox}/messages");
+        var otherAfter = await admin.GetAsync<MailboxResponse>($"/api/v0/mailboxes/{other.Id}");
+
+        Assert.That(refused.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+        Assert.That(untouched.UnreadCount, Is.EqualTo(2));
+        Assert.That(marked.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
+        Assert.That((after.MessageCount, after.UnreadCount), Is.EqualTo((2, 0)));
+        Assert.That(listed.Select(m => m.IsRead), Is.All.True);
+        Assert.That(otherAfter.UnreadCount, Is.EqualTo(1));
+    }
+
+    [Test]
     public async Task LiveMailReachesOnlyPeopleWhoCanReadTheMailbox()
     {
         await using var app = new MyotisApp(smtp: true);

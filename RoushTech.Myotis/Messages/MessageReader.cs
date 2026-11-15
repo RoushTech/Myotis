@@ -124,6 +124,11 @@ public partial class MessageReader(MyotisDbContext db)
         await db.SaveChangesAsync(cancellationToken);
     }
 
+    public Task SetAllReadAsync(Mailbox mailbox, bool isRead, CancellationToken cancellationToken) =>
+        db.Messages
+            .Where(m => m.MailboxId == mailbox.Id && m.IsRead != isRead)
+            .ExecuteUpdateAsync(s => s.SetProperty(m => m.IsRead, isRead), cancellationToken);
+
     public static MessageSummary ToSummary(Message m) =>
         new(m.Id, m.MailboxId, m.ReceivedAt, m.Subject, m.From, m.To, m.Cc, m.Size, m.AttachmentCount, m.IsRead);
 

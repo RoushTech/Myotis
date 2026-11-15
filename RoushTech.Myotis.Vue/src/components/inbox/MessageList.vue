@@ -18,16 +18,28 @@
                     {{ mailbox.messageCount }}
                     {{ mailbox.messageCount === 1 ? "message" : "messages" }}
                 </span>
-                <v-btn
-                    v-if="mailbox.messageCount && !error"
-                    variant="text"
-                    color="error"
-                    size="small"
-                    prepend-icon="mdi-delete-sweep-outline"
-                    @click="confirming = true"
-                >
-                    Empty mailbox
-                </v-btn>
+                <div v-if="mailbox.messageCount && !error" class="inbox__actions">
+                    <v-btn
+                        v-if="mailbox.unreadCount"
+                        variant="text"
+                        color="primary"
+                        size="small"
+                        prepend-icon="mdi-check-all"
+                        :loading="markingRead"
+                        @click="markAllRead"
+                    >
+                        Mark all read
+                    </v-btn>
+                    <v-btn
+                        variant="text"
+                        color="error"
+                        size="small"
+                        prepend-icon="mdi-delete-sweep-outline"
+                        @click="confirming = true"
+                    >
+                        Empty mailbox
+                    </v-btn>
+                </div>
             </div>
             <div v-if="confirming" class="confirm-bar">
                 <span>
@@ -117,6 +129,7 @@ const router = useRouter();
 const invalidate = useInvalidateMessages();
 const confirming = ref(false);
 const emptying = ref(false);
+const markingRead = ref(false);
 const search = ref<string | null>("");
 const query = computed(() => (search.value ?? "").trim());
 const {
@@ -125,6 +138,16 @@ const {
     isLoading,
     refetch,
 } = useQuery(() => messagesQuery(props.mailbox.id, query.value));
+
+async function markAllRead() {
+    markingRead.value = true;
+    try {
+        await messageApi.markAllRead(props.mailbox.id);
+        await invalidate(props.mailbox.id);
+    } finally {
+        markingRead.value = false;
+    }
+}
 
 async function empty() {
     emptying.value = true;

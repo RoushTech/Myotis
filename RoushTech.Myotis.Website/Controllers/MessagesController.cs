@@ -37,6 +37,17 @@ public class MessagesController(MessageReader messages, RetentionService retenti
         return NoContent();
     }
 
+    [HttpPatch("api/v0/mailboxes/{mailbox}/messages")]
+    public async Task<IActionResult> UpdateAll([FromRoute] Mailbox mailbox, MessageUpdateRequest request, CancellationToken cancellationToken)
+    {
+        if (request.IsRead is { } isRead)
+        {
+            await messages.SetAllReadAsync(mailbox, isRead, cancellationToken);
+        }
+
+        return NoContent();
+    }
+
     [HttpDelete("api/v0/mailboxes/{mailbox}/messages")]
     public async Task<IActionResult> DeleteAll([FromRoute] Mailbox mailbox, CancellationToken cancellationToken)
     {
