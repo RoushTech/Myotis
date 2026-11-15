@@ -67,12 +67,38 @@ public class ReadingMailTests
 
         Assert.That(policy, Does.StartWith("default-src 'none'"));
         Assert.That(policy, Does.Contain("img-src data:;"));
-        Assert.That(policy, Does.Contain("sandbox"));
+        Assert.That(policy, Does.EndWith("; sandbox allow-popups allow-popups-to-escape-sandbox"));
         Assert.That(policy, Does.Not.Contain("script-src"));
         Assert.That(string.Join(" ", allowed.Headers.GetValues("Content-Security-Policy")), Does.Contain("img-src data: https: http:;"));
         Assert.That(blocked.Headers.GetValues("X-Content-Type-Options").Single(), Is.EqualTo("nosniff"));
         Assert.That(html, Does.Contain("src=\"data:image/png;base64,"));
         Assert.That(html, Does.Not.Contain("cid:"));
+    }
+
+    [Test]
+    public async Task EveryLinkInTheHtmlOpensInANewWindowWhileTheStoredHtmlStaysAsSent()
+    {
+        await using var app = new MyotisApp(smtp: true);
+        var (admin, mailbox, password) = await SetUpAsync(app);
+        var sent = """
+            <!-- template v2 --><!DOCTYPE html><html><head><base target="_self"></head><body>
+            <a href="https://app.example/invite" target="_top" title="opens target=elsewhere">Accept</a>
+            <AREA TARGET='_self' href="https://app.example/map"><a data-target="keep" target=_parent href="https://app.example/b">B</a>
+            </body></html>
+            """;
+        var message = SmtpClients.Message("You're invited");
+        message.Body = new MimeKit.BodyBuilder { HtmlBody = sent }.ToMessageBody();
+        await SmtpClients.SendAsync(app, "billing-staging", password, message);
+        var id = (await admin.GetAsync<List<MessageSummary>>($"/api/v0/mailboxes/{mailbox}/messages")).Single().Id;
+
+        var html = await (await admin.GetAsync($"/api/v0/mailboxes/{mailbox}/messages/{id}/html")).Content.ReadAsStringAsync();
+        var detail = await admin.GetAsync<MessageDetail>($"/api/v0/mailboxes/{mailbox}/messages/{id}");
+
+        Assert.That(html, Does.StartWith("""<!-- template v2 --><!DOCTYPE html><base target="_blank"><html><head><base target="_self">"""));
+        Assert.That(html, Does.Contain("""<a href="https://app.example/invite" title="opens target=elsewhere">"""));
+        Assert.That(html, Does.Contain("""<AREA href="https://app.example/map">"""));
+        Assert.That(html, Does.Contain("""<a data-target="keep" href="https://app.example/b">"""));
+        Assert.That(detail.Html, Does.Contain("target=\"_top\"").And.Not.Contain("_blank"));
     }
 
     [Test]

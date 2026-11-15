@@ -55,8 +55,9 @@ public class MessagesController(MessageReader messages, RetentionService retenti
         }
 
         var images = remoteImages ? "data: https: http:" : "data:";
+        // Links open in a new window outside the sandbox, so the app they lead to can run its scripts.
         Response.Headers.ContentSecurityPolicy =
-            $"default-src 'none'; style-src 'unsafe-inline'; img-src {images}; form-action 'none'; base-uri 'none'; frame-ancestors 'self'; sandbox";
+            $"default-src 'none'; style-src 'unsafe-inline'; img-src {images}; form-action 'none'; base-uri 'none'; frame-ancestors 'self'; sandbox allow-popups allow-popups-to-escape-sandbox";
         Response.Headers.XContentTypeOptions = "nosniff";
         Response.Headers["Referrer-Policy"] = "no-referrer";
         Response.Headers.CacheControl = "no-store";

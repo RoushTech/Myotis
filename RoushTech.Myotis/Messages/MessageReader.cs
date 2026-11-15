@@ -80,7 +80,7 @@ public partial class MessageReader(MyotisDbContext db)
         }
 
         var inline = parsed.BodyParts.OfType<MimePart>().Where(p => p.ContentId is not null).ToDictionary(p => p.ContentId!, StringComparer.OrdinalIgnoreCase);
-        return ContentIdReference().Replace(html, match =>
+        return OpenLinksInNewWindow(ContentIdReference().Replace(html, match =>
         {
             if (!inline.TryGetValue(match.Groups["id"].Value, out var part))
             {
@@ -90,7 +90,16 @@ public partial class MessageReader(MyotisDbContext db)
             using var stream = new MemoryStream();
             part.Content?.DecodeTo(stream);
             return $"data:{part.ContentType.MimeType};base64,{Convert.ToBase64String(stream.ToArray())}";
-        });
+        }));
+    }
+
+    // A link that loads in the scriptless frame, or tries to replace the page around it, leaves the reader stuck.
+    private static string OpenLinksInNewWindow(string html)
+    {
+        var untargeted = LinkTag().Replace(html, tag => TargetOrQuotedValue().Replace(tag.Value, part => part.Groups["target"].Success ? "" : part.Value));
+        // Anything ahead of the doctype drops the message into quirks mode.
+        var afterPrologue = DocumentPrologue().Match(untargeted).Length;
+        return untargeted.Insert(afterPrologue, """<base target="_blank">""");
     }
 
     public async Task<byte[]> RawAsync(Message message, CancellationToken cancellationToken) =>
@@ -157,4 +166,13 @@ public partial class MessageReader(MyotisDbContext db)
 
     [GeneratedRegex("""cid:(?<id>[^"'\s)>]+)""", RegexOptions.IgnoreCase)]
     private static partial Regex ContentIdReference();
+
+    [GeneratedRegex("""<(?:a|area)\b(?:[^>"']|"[^"]*"|'[^']*')*>""", RegexOptions.IgnoreCase)]
+    private static partial Regex LinkTag();
+
+    [GeneratedRegex("""(?<target>\s+target\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+))|"[^"]*"|'[^']*'""", RegexOptions.IgnoreCase)]
+    private static partial Regex TargetOrQuotedValue();
+
+    [GeneratedRegex("""^(?:\s|<!--.*?-->|<\?[^>]*>|<!doctype[^>]*>)*""", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
+    private static partial Regex DocumentPrologue();
 }
